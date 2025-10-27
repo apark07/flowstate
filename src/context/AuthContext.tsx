@@ -3,8 +3,8 @@ import type { User } from '../types';
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<void>;
+  register: (username: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -14,7 +14,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
-  const login = async (email: string, password: string) => {
+  const login = async (username: string, password: string) => {
     // TODO: Replace with actual backend authentication
     // For now, simulate a successful login
     await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API call
@@ -22,15 +22,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Mock user data
     const mockUser: User = {
       id: '1',
-      email: email,
-      name: email.split('@')[0],
+      email: `${username}@flowstate.com`,
+      name: username,
+      username: username,
     };
     
     setUser(mockUser);
     localStorage.setItem('user', JSON.stringify(mockUser));
   };
 
-  const register = async (email: string, password: string, name: string) => {
+  const register = async (username: string, email: string, password: string) => {
     // TODO: Replace with actual backend registration
     // For now, simulate a successful registration
     await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API call
@@ -38,7 +39,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const mockUser: User = {
       id: '1',
       email: email,
-      name: name,
+      name: username,
+      username: username,
     };
     
     setUser(mockUser);

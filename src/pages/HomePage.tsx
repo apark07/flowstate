@@ -1,153 +1,110 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
-export default function LoginPage() {
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [error, setError] = useState('');
+export default function HomePage() {
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const { login, register } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    try {
-      if (isLogin) {
-        await login(email, password);
-      } else {
-        await register(email, password, name);
-      }
-      navigate('/home');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    }
+  const handleLogout = () => {
+    logout();
+    navigate('/');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
-        {/* Logo/Brand */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-indigo-600 mb-2">FlowState</h1>
-          <p className="text-gray-600">Your fitness journey starts here</p>
-        </div>
-
-        {/* Toggle between Login/Register */}
-        <div className="flex mb-6 bg-gray-100 rounded-lg p-1">
-          <button
-            onClick={() => setIsLogin(true)}
-            className={`flex-1 py-2 rounded-md transition-all ${
-              isLogin
-                ? 'bg-white text-indigo-600 shadow-sm font-medium'
-                : 'text-gray-600'
-            }`}
-          >
-            Login
-          </button>
-          <button
-            onClick={() => setIsLogin(false)}
-            className={`flex-1 py-2 rounded-md transition-all ${
-              !isLogin
-                ? 'bg-white text-indigo-600 shadow-sm font-medium'
-                : 'text-gray-600'
-            }`}
-          >
-            Register
-          </button>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {!isLogin && (
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                Name
-              </label>
-              <input
-                id="name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
-                placeholder="Enter your name"
-                required={!isLogin}
-              />
+    <div className="min-h-screen bg-gray-50">
+      {/* Navbar */}
+      <nav className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <h1 className="text-2xl font-bold text-indigo-600">FlowState</h1>
             </div>
-          )}
+            <div className="flex items-center gap-4">
+              <span className="text-gray-700">Welcome, {user?.username || user?.name}!</span>
+              <button
+                onClick={handleLogout}
+                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
 
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
-              placeholder="Enter your email"
-              required
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-white rounded-lg shadow-md p-8">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            Dashboard
+          </h2>
+          <p className="text-gray-600 mb-8">
+            Your fitness journey starts here. We'll be adding features soon!
+          </p>
+
+          {/* Feature Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <FeatureCard
+              title="Exercises"
+              description="Browse and filter exercises by muscle group and goals"
+              icon="💪"
+              comingSoon
+            />
+            <FeatureCard
+              title="Track Progress"
+              description="Log your workouts and track your progress over time"
+              icon="📊"
+              comingSoon
+            />
+            <FeatureCard
+              title="BMI Calculator"
+              description="Calculate your Body Mass Index and track your health"
+              icon="⚖️"
+              comingSoon
+            />
+            <FeatureCard
+              title="Workout Plans"
+              description="Create custom workout plans tailored to your goals"
+              icon="📝"
+              comingSoon
+            />
+            <FeatureCard
+              title="Form Videos"
+              description="Watch instructional videos to perfect your form"
+              icon="🎥"
+              comingSoon
+            />
+            <FeatureCard
+              title="Body Diagram"
+              description="Interactive body diagram to find exercises by muscle"
+              icon="🧍"
+              comingSoon
             />
           </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
-              placeholder="Enter your password"
-              required
-            />
-          </div>
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
-              {error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            className="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors shadow-md hover:shadow-lg"
-          >
-            {isLogin ? 'Login' : 'Create Account'}
-          </button>
-        </form>
-
-        {/* Footer */}
-        <div className="mt-6 text-center text-sm text-gray-600">
-          {isLogin ? (
-            <p>
-              Don't have an account?{' '}
-              <button
-                onClick={() => setIsLogin(false)}
-                className="text-indigo-600 font-medium hover:underline"
-              >
-                Sign up
-              </button>
-            </p>
-          ) : (
-            <p>
-              Already have an account?{' '}
-              <button
-                onClick={() => setIsLogin(true)}
-                className="text-indigo-600 font-medium hover:underline"
-              >
-                Login
-              </button>
-            </p>
-          )}
         </div>
-      </div>
+      </main>
+    </div>
+  );
+}
+
+interface FeatureCardProps {
+  title: string;
+  description: string;
+  icon: string;
+  comingSoon?: boolean;
+}
+
+function FeatureCard({ title, description, icon, comingSoon }: FeatureCardProps) {
+  return (
+    <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-lg p-6 border border-indigo-100 hover:shadow-lg transition-shadow relative">
+      {comingSoon && (
+        <span className="absolute top-3 right-3 bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-1 rounded">
+          Coming Soon
+        </span>
+      )}
+      <div className="text-4xl mb-4">{icon}</div>
+      <h3 className="text-xl font-semibold text-gray-900 mb-2">{title}</h3>
+      <p className="text-gray-600 text-sm">{description}</p>
     </div>
   );
 }
