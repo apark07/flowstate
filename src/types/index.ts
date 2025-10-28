@@ -1,11 +1,11 @@
-export interface User {
+export type User =  {
   id: string;
   email: string;
   name: string;
   username: string;
 }
 
-export interface Exercise {
+export type Exercise =  {
   id: string;
   name: string;
   type: string;
@@ -15,7 +15,7 @@ export interface Exercise {
   instructions: string;
 }
 
-export interface WorkoutLog {
+export type WorkoutLog = {
   id: string;
   userId: string;
   exerciseId: string;
@@ -23,4 +23,11 @@ export interface WorkoutLog {
   reps: number;
   weight?: number;
   date: string;
+}
+export type AuthContextType ={
+  user: User | null;
+  login: (username: string, password: string) => Promise<void>;
+  register: (username: string, email: string, password: string, confirmPassword: string) => Promise<void>;
+  logout: () => void;
+  isAuthenticated: boolean;
 }
