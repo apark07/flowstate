@@ -21,6 +21,10 @@ export default function LoginPage() {
       if (isLogin) {
         await login(username, password);
       } else {
+        if (password.length < 7) {
+          setError("password must be at least 7 characters long");
+          return;
+        }
         if (password !== confirmPassword) {
           console.log(password);
           console.log(confirmPassword);
