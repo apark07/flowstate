@@ -2,11 +2,6 @@ import { useState, type ReactNode } from "react";
 import type { User } from "../types/index.ts";
 import { AuthContext } from "../contexts/AuthContext";
 
-// // eslint-disable-next-line react-refresh/only-export-components
-// export const AuthContext = createContext<AuthContextType | undefined>(undefined);
-// // the comment above this line should allow us to export the context without fast refresh errors
-// // do not delete the comment!! this is easier (for now) than creating a whole
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
