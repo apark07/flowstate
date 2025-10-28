@@ -160,31 +160,6 @@ export default function LoginPage() {
             {isLogin ? "Login" : "Create Account"}
           </button>
         </form>
-
-        {/* Footer */}
-        <div className="mt-6 text-center text-sm text-gray-600">
-          {isLogin ? (
-            <p>
-              Don't have an account?{" "}
-              <button
-                onClick={() => setIsLogin(false)}
-                className="text-indigo-600 font-medium hover:underline"
-              >
-                Sign up
-              </button>
-            </p>
-          ) : (
-            <p>
-              Already have an account?{" "}
-              <button
-                onClick={() => setIsLogin(true)}
-                className="text-indigo-600 font-medium hover:underline"
-              >
-                Login
-              </button>
-            </p>
-          )}
-        </div>
       </div>
     </div>
   );
