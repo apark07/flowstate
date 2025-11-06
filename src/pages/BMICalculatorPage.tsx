@@ -272,7 +272,7 @@ export default function BMICalculatorPage() {
 
                   {/* BMI Gauge */}
                   <div className="mt-6">
-                    <div className="h-3 bg-gradient-to-r from-blue-400 via-green-400 via-yellow-400 to-red-400 rounded-full relative">
+                    <div className="h-3 bg-gradient-to-r from-blue-400 via-yellow-400 to-red-400 rounded-full relative">
                       <div
                         className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-6 h-6 bg-white border-4 border-gray-800 rounded-full shadow-lg"
                         style={{ left: `${getBMIGaugePosition(bmi)}%` }}
