@@ -39,29 +39,31 @@ export default function HomePage() {
             Dashboard
           </h2>
           <p className="text-gray-600 mb-8">
-            Your fitness journey starts here. We'll be adding features soon!
+            Your fitness journey starts here. Track your progress, explore exercises, and get personalized recommendations!
           </p>
 
           {/* Feature Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <FeatureCard
-              title="Exercises"
-              description="Browse and filter exercises by muscle group and goals"
-              icon="💪"
-              comingSoon
-            />
+            <div onClick={() => navigate('/exercises')} className="cursor-pointer">
+              <FeatureCard
+                title="Exercises & Videos"
+                description="Browse exercises with animated demonstrations and form videos"
+                icon="💪"
+              />
+            </div>
             <FeatureCard
               title="Track Progress"
               description="Log your workouts and track your progress over time"
               icon="📊"
               comingSoon
             />
-            <FeatureCard
-              title="BMI Calculator"
-              description="Calculate your Body Mass Index and track your health"
-              icon="⚖️"
-              comingSoon
-            />
+            <div onClick={() => navigate('/bmi')} className="cursor-pointer">
+              <FeatureCard
+                title="BMI Calculator"
+                description="Calculate your Body Mass Index and track your health"
+                icon="⚖️"
+              />
+            </div>
             <FeatureCard
               title="Workout Plans"
               description="Create custom workout plans tailored to your goals"
@@ -69,9 +71,9 @@ export default function HomePage() {
               comingSoon
             />
             <FeatureCard
-              title="Form Videos"
-              description="Watch instructional videos to perfect your form"
-              icon="🎥"
+              title="Flex AI"
+              description="AI-powered chatbot for personalized workout recommendations"
+              icon="🤖"
               comingSoon
             />
             <FeatureCard
