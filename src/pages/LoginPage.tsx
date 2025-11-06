@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../../FirebaseConfig.ts';
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -9,8 +11,26 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { login, register } = useAuth();
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    
+    try {
+      if (isLogin) {
+        // Perform login
+        await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        // Perform registration
+        await createUserWithEmailAndPassword(auth, email, password);
+      }
+      navigate('/home');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    }
+  };
+  
+  /*const { login, register } = useAuth();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -26,7 +46,7 @@ export default function LoginPage() {
       setError(err instanceof Error ? err.message : 'An error occurred');
     }
   };
-
+*/
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">

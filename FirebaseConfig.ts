@@ -32,4 +32,4 @@ export const analytics =
     : undefined;
 
 
-console.log("Checking if firebase app is initialized:", app.name);
+//console.log("Checking if firebase app is initialized:", app.name);
