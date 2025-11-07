@@ -13,7 +13,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setIsAuthenticated(!!user);
+      setIsAuthenticated(!!user); // note that !! means convert to boolean
     });
     return () => unsubscribe();
   }, []);
