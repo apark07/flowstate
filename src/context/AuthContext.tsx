@@ -1,10 +1,13 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
-import type { User } from '../types';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { auth } from '../../FirebaseConfig';  // Import your Firebase auth
+//import { user as FirebaseUser } from 'firebase/auth';
+import { type User } from '../types';  // Your own user type
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 
 interface AuthContextType {
   user: User | null;
-  login: (username: string, password: string) => Promise<void>;
-  register: (username: string, email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -14,42 +17,54 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
-  const login = async (username: string, password: string) => {
-    // TODO: Replace with actual backend authentication
-    // For now, simulate a successful login
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API call
-    
-    // Mock user data
-    const mockUser: User = {
-      id: '1',
-      email: `${username}@flowstate.com`,
-      name: username,
-      username: username,
-    };
-    
-    setUser(mockUser);
-    localStorage.setItem('user', JSON.stringify(mockUser));
-  };
+  useEffect(() => {
+    // Check if there's a user in localStorage or Firebase
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser)); // Load user from localStorage
+    }
 
-  const register = async (username: string, email: string, password: string) => {
-    // TODO: Replace with actual backend registration
-    // For now, simulate a successful registration
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API call
-    
-    const mockUser: User = {
-      id: '1',
-      email: email,
-      name: username,
-      username: username,
-    };
-    
-    setUser(mockUser);
-    localStorage.setItem('user', JSON.stringify(mockUser));
+    const unsubscribe = auth.onAuthStateChanged((firebaseUser) => {
+      if (firebaseUser) {
+        // If Firebase user exists, set it to state
+        const user: User = {
+          id: firebaseUser.uid,
+          email: firebaseUser.email ?? '',
+          name: firebaseUser.displayName ?? '',
+          username: firebaseUser.email ?? '',
+        };
+        setUser(user);
+        localStorage.setItem('user', JSON.stringify(user)); // Persist user in localStorage
+      } else {
+        // If no Firebase user, clear state
+        setUser(null);
+        localStorage.removeItem('user'); // Remove user from localStorage
+      }
+    });
+
+    return () => unsubscribe(); // Cleanup the listener when the component unmounts
+  }, []);
+
+  const login = async (email: string, password: string) => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      // No need to do anything here since Firebase automatically updates auth state
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
+  };
+  
+  const register = async (email: string, password: string) => {
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      // No need to do anything here either, Firebase handles the user creation
+    } catch (error) {
+      console.error("Registration failed:", error);
+    }
   };
 
   const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
+    auth.signOut();  // This will trigger onAuthStateChanged to clear user state
   };
 
   const isAuthenticated = user !== null;

@@ -15,10 +15,35 @@ export default function HomePage() {
   };
 
   useEffect(() => {
+    console.log("Setting up auth state listener in HomePage.tsx");
+    const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
+      if (currentUser) {
+        console.log("User detected via onAuthStateChanged:", currentUser);
+        try {
+          const userDoc = await getDoc(doc(db, "user", currentUser.uid));
+          if (userDoc.exists()) {
+            setUser(userDoc.data() as UserData);
+          } else {
+            // reroute to home b/c no user found
+            navigate("/");
+          }
+        } catch (e) {
+          console.error("Error fetching user data:", e);
+        }
+      } else {
+        setUser(null);
+        navigate("/");
+      }
+      //setLoading(false);
+    });
+    return () => unsubscribe();
+  }, [navigate]);
+
+  useEffect(() => {
     const fetchUserData = async () => {
       const currentUser = auth.currentUser;
       if (currentUser) {
-        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+        const userDoc = await getDoc(doc(db, "user", currentUser.uid));
         if (userDoc.exists()) {
           setUser(userDoc.data() as UserData);
         } else {

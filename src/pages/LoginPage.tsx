@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+//import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../../FirebaseConfig.ts';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { type UserData } from '../types/index.ts';
+import { useAuth } from '../context/AuthContext.tsx';
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -12,17 +11,23 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const navigate = useNavigate();
+
+  const { login, register } = useAuth()!;
 
   const handleSubmit = async (e: React.FormEvent) => {
+
     e.preventDefault();
     setError('');
     
     try {
       if (isLogin) {
-        // Perform login
-        const response = await signInWithEmailAndPassword(auth, email, password);
-        console.log(response);
+        const response = await login(email, password);
+
+        if (!response!) { 
+          setError('Login failed. Please check your credentials and try again.');
+          return;
+        }
+        console.log("Login successful");
       } else {
         if (!username) {
           setError('Username is required for registration');
@@ -41,23 +46,27 @@ export default function LoginPage() {
         }
 
         // Perform registration
-        const response = await createUserWithEmailAndPassword(auth, email, password);
-        console.log(response);
+        await register(email, password);
+        console.log("Registration successful");
 
-        // Optionally, you can set the username in the user's profile here
-        const user = response.user;
+        const userId = auth.currentUser?.uid;
+        if (!userId) {
+          setError('User ID not found after registration. Try refreshing the page.');
+          return;
+        }
 
-        // There is a users collection in Firestore where we store user info. Current fields are name and email.
+        // There is a 'user' collection in Firestore where we store user info. Current fields are name and email.
         // More may be added later
         const userLoginData: UserData = {
           name: username,
           email: email
         };
-        
-        await setDoc(doc(db, 'user', user.uid), userLoginData);
+
+        await setDoc(doc(db, 'user', userId), userLoginData);
       }
-      navigate('/home');
+      // do not do navigate('/home') here because the auth state listener in App.tsx will handle the redirect
     } catch (err) {
+      console.log("reached seterror");
       setError(err instanceof Error ? err.message : 'An error occurred');
     }
   };

@@ -1,42 +1,64 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { auth } from '../../FirebaseConfig.ts';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { auth } from "../../FirebaseConfig.ts";
+import { type UserData } from "../types/index.ts";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../../FirebaseConfig.ts";
 
 interface BMIRecord {
   id: string;
   date: string;
   bmi: number;
   category: string;
-  unit: 'metric' | 'imperial';
+  unit: "metric" | "imperial";
   height: number;
   weight: number;
 }
 
 export default function BMICalculatorPage() {
-  const { user } = useAuth();
+  const [user, setUser] = useState<UserData | null>(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        const userDoc = await getDoc(doc(db, "user", currentUser.uid));
+        if (userDoc.exists()) {
+          setUser(userDoc.data() as UserData);
+        } else {
+          // reroute to home b/c no user found
+          navigate("/");
+        }
+      }
+    };
+    fetchUserData();
+  }, []);
+
+  console.log("Rendering BMICalculatorPage");
+  console.log("Current auth user:", user);
+
   const navigate = useNavigate();
-  
+
   // Unit toggle
-  const [unit, setUnit] = useState<'metric' | 'imperial'>('imperial');
-  
+  const [unit, setUnit] = useState<"metric" | "imperial">("imperial");
+
   // Metric inputs
-  const [heightCm, setHeightCm] = useState<string>('');
-  const [weightKg, setWeightKg] = useState<string>('');
-  
+  const [heightCm, setHeightCm] = useState<string>("");
+  const [weightKg, setWeightKg] = useState<string>("");
+
   // Imperial inputs
-  const [heightFeet, setHeightFeet] = useState<string>('');
-  const [heightInches, setHeightInches] = useState<string>('');
-  const [weightLbs, setWeightLbs] = useState<string>('');
-  
+  const [heightFeet, setHeightFeet] = useState<string>("");
+  const [heightInches, setHeightInches] = useState<string>("");
+  const [weightLbs, setWeightLbs] = useState<string>("");
+
   // Results
   const [bmi, setBmi] = useState<number | null>(null);
-  const [category, setCategory] = useState<string>('');
+  const [category, setCategory] = useState<string>("");
   const [history, setHistory] = useState<BMIRecord[]>([]);
 
   // Load history from localStorage on mount
   useEffect(() => {
-    const savedHistory = localStorage.getItem('bmiHistory');
+    const savedHistory = localStorage.getItem("bmiHistory");
     if (savedHistory) {
       setHistory(JSON.parse(savedHistory));
     }
@@ -55,7 +77,7 @@ export default function BMICalculatorPage() {
   const calculateBMI = () => {
     let bmiValue: number | null = null;
 
-    if (unit === 'metric') {
+    if (unit === "metric") {
       const height = parseFloat(heightCm);
       const weight = parseFloat(weightKg);
       if (height > 0 && weight > 0) {
@@ -67,7 +89,7 @@ export default function BMICalculatorPage() {
       const inches = parseFloat(heightInches) || 0;
       const weight = parseFloat(weightLbs);
       const totalInches = feet * 12 + inches;
-      
+
       if (totalInches > 0 && weight > 0) {
         bmiValue = (weight / (totalInches * totalInches)) * 703;
       }
@@ -78,24 +100,29 @@ export default function BMICalculatorPage() {
       setCategory(getBMICategory(bmiValue));
     } else {
       setBmi(null);
-      setCategory('');
+      setCategory("");
     }
   };
 
   const getBMICategory = (bmi: number): string => {
-    if (bmi < 18.5) return 'Underweight';
-    if (bmi < 25) return 'Normal weight';
-    if (bmi < 30) return 'Overweight';
-    return 'Obese';
+    if (bmi < 18.5) return "Underweight";
+    if (bmi < 25) return "Normal weight";
+    if (bmi < 30) return "Overweight";
+    return "Obese";
   };
 
   const getCategoryColor = (category: string): string => {
     switch (category) {
-      case 'Underweight': return 'text-blue-600 bg-blue-50';
-      case 'Normal weight': return 'text-green-600 bg-green-50';
-      case 'Overweight': return 'text-yellow-600 bg-yellow-50';
-      case 'Obese': return 'text-red-600 bg-red-50';
-      default: return 'text-gray-600 bg-gray-50';
+      case "Underweight":
+        return "text-blue-600 bg-blue-50";
+      case "Normal weight":
+        return "text-green-600 bg-green-50";
+      case "Overweight":
+        return "text-yellow-600 bg-yellow-50";
+      case "Obese":
+        return "text-red-600 bg-red-50";
+      default:
+        return "text-gray-600 bg-gray-50";
     }
   };
 
@@ -108,13 +135,16 @@ export default function BMICalculatorPage() {
       bmi,
       category,
       unit,
-      height: unit === 'metric' ? parseFloat(heightCm) : (parseFloat(heightFeet) * 12 + parseFloat(heightInches)),
-      weight: unit === 'metric' ? parseFloat(weightKg) : parseFloat(weightLbs),
+      height:
+        unit === "metric"
+          ? parseFloat(heightCm)
+          : parseFloat(heightFeet) * 12 + parseFloat(heightInches),
+      weight: unit === "metric" ? parseFloat(weightKg) : parseFloat(weightLbs),
     };
 
     const updatedHistory = [record, ...history].slice(0, 10); // Keep last 10 records
     setHistory(updatedHistory);
-    localStorage.setItem('bmiHistory', JSON.stringify(updatedHistory));
+    localStorage.setItem("bmiHistory", JSON.stringify(updatedHistory));
   };
 
   const getBMIGaugePosition = (bmi: number): number => {
@@ -133,16 +163,16 @@ export default function BMICalculatorPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-8">
-              <h1 
+              <h1
                 className="text-2xl font-bold text-indigo-600 cursor-pointer"
-                onClick={() => navigate('/home')}
+                onClick={() => navigate("/home")}
               >
                 FlowState
               </h1>
               <span className="text-gray-600">BMI Calculator</span>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-gray-700">Welcome, {user?.username || user?.name}!</span>
+              <span className="text-gray-700">Welcome, {user?.name}!</span>
               <button
                 onClick={handleLogout}
                 className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
@@ -160,26 +190,28 @@ export default function BMICalculatorPage() {
           {/* Calculator Section */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-md p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Calculate Your BMI</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                Calculate Your BMI
+              </h2>
 
               {/* Unit Toggle */}
               <div className="flex mb-6 bg-gray-100 rounded-lg p-1 max-w-xs">
                 <button
-                  onClick={() => setUnit('imperial')}
+                  onClick={() => setUnit("imperial")}
                   className={`flex-1 py-2 px-4 rounded-md transition-all ${
-                    unit === 'imperial'
-                      ? 'bg-white text-indigo-600 shadow-sm font-medium'
-                      : 'text-gray-600'
+                    unit === "imperial"
+                      ? "bg-white text-indigo-600 shadow-sm font-medium"
+                      : "text-gray-600"
                   }`}
                 >
                   Imperial (lbs/ft)
                 </button>
                 <button
-                  onClick={() => setUnit('metric')}
+                  onClick={() => setUnit("metric")}
                   className={`flex-1 py-2 px-4 rounded-md transition-all ${
-                    unit === 'metric'
-                      ? 'bg-white text-indigo-600 shadow-sm font-medium'
-                      : 'text-gray-600'
+                    unit === "metric"
+                      ? "bg-white text-indigo-600 shadow-sm font-medium"
+                      : "text-gray-600"
                   }`}
                 >
                   Metric (kg/cm)
@@ -188,7 +220,7 @@ export default function BMICalculatorPage() {
 
               {/* Input Form */}
               <div className="space-y-6">
-                {unit === 'metric' ? (
+                {unit === "metric" ? (
                   <>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -230,7 +262,9 @@ export default function BMICalculatorPage() {
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                             placeholder="Feet"
                           />
-                          <span className="text-xs text-gray-500 mt-1">feet</span>
+                          <span className="text-xs text-gray-500 mt-1">
+                            feet
+                          </span>
                         </div>
                         <div className="flex-1">
                           <input
@@ -240,7 +274,9 @@ export default function BMICalculatorPage() {
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                             placeholder="Inches"
                           />
-                          <span className="text-xs text-gray-500 mt-1">inches</span>
+                          <span className="text-xs text-gray-500 mt-1">
+                            inches
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -264,9 +300,17 @@ export default function BMICalculatorPage() {
               {bmi && (
                 <div className="mt-8 p-6 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-lg border border-indigo-100">
                   <div className="text-center mb-4">
-                    <h3 className="text-lg font-medium text-gray-700 mb-2">Your BMI</h3>
-                    <div className="text-5xl font-bold text-indigo-600 mb-2">{bmi}</div>
-                    <div className={`inline-block px-4 py-2 rounded-full font-semibold ${getCategoryColor(category)}`}>
+                    <h3 className="text-lg font-medium text-gray-700 mb-2">
+                      Your BMI
+                    </h3>
+                    <div className="text-5xl font-bold text-indigo-600 mb-2">
+                      {bmi}
+                    </div>
+                    <div
+                      className={`inline-block px-4 py-2 rounded-full font-semibold ${getCategoryColor(
+                        category
+                      )}`}
+                    >
                       {category}
                     </div>
                   </div>
@@ -303,7 +347,9 @@ export default function BMICalculatorPage() {
           <div className="space-y-6">
             {/* BMI Categories Info */}
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">BMI Categories</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                BMI Categories
+              </h3>
               <div className="space-y-3 text-sm">
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 rounded-full bg-blue-400"></div>
@@ -331,7 +377,9 @@ export default function BMICalculatorPage() {
             {/* History */}
             {history.length > 0 && (
               <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">History</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  History
+                </h3>
                 <div className="space-y-3">
                   {history.map((record) => (
                     <div
@@ -340,8 +388,12 @@ export default function BMICalculatorPage() {
                     >
                       <div className="flex justify-between items-start">
                         <div>
-                          <div className="font-semibold text-gray-900">{record.bmi}</div>
-                          <div className="text-xs text-gray-600">{record.category}</div>
+                          <div className="font-semibold text-gray-900">
+                            {record.bmi}
+                          </div>
+                          <div className="text-xs text-gray-600">
+                            {record.category}
+                          </div>
                         </div>
                         <div className="text-xs text-gray-500">
                           {new Date(record.date).toLocaleDateString()}

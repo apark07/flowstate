@@ -1,24 +1,24 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../FirebaseConfig';
-import LoginPage from './pages/LoginPage';
-import HomePage from './pages/HomePage';
-import BMICalculatorPage from './pages/BMICalculatorPage';
-import ExercisesPage from './pages/ExercisesPage';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { useEffect, useState } from "react";
+import { auth } from "../FirebaseConfig";
+import LoginPage from "./pages/LoginPage";
+import HomePage from "./pages/HomePage";
+import BMICalculatorPage from "./pages/BMICalculatorPage";
+import ExercisesPage from "./pages/ExercisesPage";
 
 // Protected Route wrapper
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setIsAuthenticated(!!user); // note that !! means convert to boolean
-    });
-    return () => unsubscribe();
-  }, []);
-
-  // Show loading state while checking auth
+function ProtectedRoute({
+  children,
+  isAuthenticated,
+}: {
+  children: React.ReactNode;
+  isAuthenticated: boolean | null;
+}) {
   if (isAuthenticated === null) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -27,21 +27,17 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return isAuthenticated ? <>{children}</> : <Navigate to="/" />;
+  return isAuthenticated ? <>{children}</> : <Navigate to="/" replace />;
 }
 
 // Public Route wrapper (redirect to home if already authenticated)
-function PublicRoute({ children }: { children: React.ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setIsAuthenticated(!!user);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  // Show loading state while checking auth
+function PublicRoute({
+  children,
+  isAuthenticated,
+}: {
+  children: React.ReactNode;
+  isAuthenticated: boolean | null;
+}) {
   if (isAuthenticated === null) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -50,52 +46,59 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return !isAuthenticated ? <>{children}</> : <Navigate to="/home" />;
-}
-
-function AppRoutes() {
-  return (
-    <Routes>
-      <Route
-        path="/"
-        element={
-          <PublicRoute>
-            <LoginPage />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/home"
-        element={
-          <ProtectedRoute>
-            <HomePage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/bmi"
-        element={
-          <ProtectedRoute>
-            <BMICalculatorPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/exercises"
-        element={
-          <ProtectedRoute>
-            <ExercisesPage />
-          </ProtectedRoute>
-        }
-      />
-    </Routes>
-  );
+  return !isAuthenticated ? <>{children}</> : <Navigate to="/home" replace />;
 }
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  //const [loading, setLoading] = useState<boolean>(true);
+  // set loading state was for debugging, we might need to delete this or use it later.
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      console.log("Auth state changed:", user ? "logged in" : "logged out");
+      setIsAuthenticated(!!user);
+      //setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
   return (
     <Router>
-      <AppRoutes />
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <PublicRoute isAuthenticated={isAuthenticated}>
+              <LoginPage />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/home"
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <HomePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/bmi"
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <BMICalculatorPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/exercises"
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <ExercisesPage />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
     </Router>
   );
 }

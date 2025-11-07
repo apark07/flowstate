@@ -1,10 +1,10 @@
-// ...existing code...
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
-import {  setPersistence, browserLocalPersistence, initializeAuth } from "firebase/auth";
+import {  /*setPersistence, browserLocalPersistence,*/ initializeAuth } from "firebase/auth";
 import { onAuthStateChanged } from "firebase/auth";
-// ...existing code...
+
+//import { useState, useEffect, createContext, useContext } from "react";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -22,11 +22,17 @@ export const db = getFirestore(app);
 
 // Auth with browser local persistence (default is local, but you can set explicitly)
 export const auth = initializeAuth(app);
-setPersistence(auth, browserLocalPersistence)
-  .catch((err) => {
-    console.warn("Could not set auth persistence:", err.code || err.message || err);
-  });
 
+/*console.log("Set persistence to browser local persistence");
+
+// setPersistence(auth, browserLocalPersistence)
+//   .catch((err) => {
+//     console.warn("Could not set auth persistence:", err.code || err.message || err);
+}); */
+
+
+
+console.log("onAuthStateChanged listener added in FirebaseConfig.ts");
 onAuthStateChanged(auth, (user) => {
   console.log("Auth state changed (from FirebaseConfig):", user ? "logged in" : "logged out");
   if (user) {
