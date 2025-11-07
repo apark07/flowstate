@@ -1,10 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
-import {  /*setPersistence, browserLocalPersistence,*/ initializeAuth } from "firebase/auth";
-import { onAuthStateChanged } from "firebase/auth";
-
-//import { useState, useEffect, createContext, useContext } from "react";
+import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -19,33 +16,15 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
+export const auth = getAuth(app); // Use getAuth instead of initializeAuth
 
-// Auth with browser local persistence (default is local, but you can set explicitly)
-export const auth = initializeAuth(app);
-
-/*console.log("Set persistence to browser local persistence");
-
-// setPersistence(auth, browserLocalPersistence)
-//   .catch((err) => {
-//     console.warn("Could not set auth persistence:", err.code || err.message || err);
-}); */
-
-
-
-console.log("onAuthStateChanged listener added in FirebaseConfig.ts");
-onAuthStateChanged(auth, (user) => {
-  console.log("Auth state changed (from FirebaseConfig):", user ? "logged in" : "logged out");
-  if (user) {
-    console.log("User is signed in:", user.uid);
-  } else {
-    console.log("No user is signed in.");
-  }
-
+// Set persistence once (already default for web, but explicit because of the prior bug)
+setPersistence(auth, browserLocalPersistence).catch((err) => {
+  console.warn("Could not set auth persistence:", err.code || err.message || err);
 });
 
-// I don't think the analytics is useful for us but the copy-paste gave me analytics so I am keeping it here just in case
+// may be useless, might delete later?
 export const analytics =
   typeof window !== "undefined" && import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
     ? getAnalytics(app)
     : undefined;
-//console.log("Checking if firebase app is initialized:", app.name);

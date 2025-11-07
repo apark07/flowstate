@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { auth } from "../../FirebaseConfig.ts";
+import { auth, db } from "../../FirebaseConfig.ts";
 import { doc, getDoc } from "firebase/firestore";
-import { db } from "../../FirebaseConfig.ts";
 import { useEffect, useState } from "react";
 import { type UserData } from "../types/index.ts";
 
@@ -15,40 +14,12 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    console.log("Setting up auth state listener in HomePage.tsx");
-    const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
-      if (currentUser) {
-        console.log("User detected via onAuthStateChanged:", currentUser);
-        try {
-          const userDoc = await getDoc(doc(db, "user", currentUser.uid));
-          if (userDoc.exists()) {
-            setUser(userDoc.data() as UserData);
-          } else {
-            // reroute to home b/c no user found
-            navigate("/");
-          }
-        } catch (e) {
-          console.error("Error fetching user data:", e);
-        }
-      } else {
-        setUser(null);
-        navigate("/");
-      }
-      //setLoading(false);
-    });
-    return () => unsubscribe();
-  }, [navigate]);
-
-  useEffect(() => {
     const fetchUserData = async () => {
       const currentUser = auth.currentUser;
       if (currentUser) {
         const userDoc = await getDoc(doc(db, "user", currentUser.uid));
         if (userDoc.exists()) {
           setUser(userDoc.data() as UserData);
-        } else {
-          // reroute to home b/c no user found
-          navigate("/");
         }
       }
     };
@@ -65,7 +36,7 @@ export default function HomePage() {
               <h1 className="text-2xl font-bold text-indigo-600">FlowState</h1>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-gray-700">Welcome, {user?.name}!</span>
+              <span className="text-gray-700">Welcome, {user?.name || "User"}!</span>
               <button
                 onClick={handleLogout}
                 className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
