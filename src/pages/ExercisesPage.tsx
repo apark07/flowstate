@@ -7,12 +7,13 @@ import {
   type Exercise, 
   DEFAULT_BODY_PARTS
 } from '../services/exerciseService';
-import ExerciseImage from '../components/ExerciseImage';
+// import ExerciseImage from '../components/ExerciseImage';
+import { auth } from '../../FirebaseConfig.ts';
 
 export default function ExercisesPage() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
-
+  
   // State
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(false);
@@ -21,6 +22,11 @@ export default function ExercisesPage() {
   const [selectedBodyPart, setSelectedBodyPart] = useState('');
   const [bodyParts, setBodyParts] = useState<string[]>(DEFAULT_BODY_PARTS);
   const [favorites, setFavorites] = useState<string[]>([]);
+
+  const handleLogout = () => {
+      auth.signOut();
+      navigate("/");
+    };
 
   // Load body parts and favorites
   useEffect(() => {
@@ -97,11 +103,6 @@ export default function ExercisesPage() {
   const clearFilters = () => {
     setSelectedBodyPart('');
     setSearchTerm('');
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate('/');
   };
 
   const formatLabel = (str: string) => {

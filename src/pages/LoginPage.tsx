@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../FirebaseConfig.ts';
+import { auth, db } from '../../FirebaseConfig.ts';
+import { doc, setDoc } from 'firebase/firestore';
+import { type UserData } from '../types/index.ts';
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -19,10 +21,40 @@ export default function LoginPage() {
     try {
       if (isLogin) {
         // Perform login
-        await signInWithEmailAndPassword(auth, email, password);
+        const response = await signInWithEmailAndPassword(auth, email, password);
+        console.log(response);
       } else {
+        if (!username) {
+          setError('Username is required for registration');
+          return;
+        }
+        
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email || !emailRegex.test(email)) {
+          setError('Please enter a valid email address');
+          return;
+        }
+
+        if (password.length < 7) {
+          setError('Password must be at least 7 characters long');
+          return;
+        }
+
         // Perform registration
-        await createUserWithEmailAndPassword(auth, email, password);
+        const response = await createUserWithEmailAndPassword(auth, email, password);
+        console.log(response);
+
+        // Optionally, you can set the username in the user's profile here
+        const user = response.user;
+
+        // There is a users collection in Firestore where we store user info. Current fields are name and email.
+        // More may be added later
+        const userLoginData: UserData = {
+          name: username,
+          email: email
+        };
+        
+        await setDoc(doc(db, 'user', user.uid), userLoginData);
       }
       navigate('/home');
     } catch (err) {
@@ -30,23 +62,6 @@ export default function LoginPage() {
     }
   };
   
-  /*const { login, register } = useAuth();
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    try {
-      if (isLogin) {
-        await login(username, password);
-      } else {
-        await register(username, email, password);
-      }
-      navigate('/home');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    }
-  };
-*/
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
@@ -82,37 +97,39 @@ export default function LoginPage() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
-              Username
-            </label>
-            <input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
-              placeholder="Enter your username"
-              required
-            />
-          </div>
-
+          {/* Username only shown during registration */}
           {!isLogin && (
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+                Username
               </label>
               <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
-                placeholder="Enter your email"
-                required={!isLogin}
+                placeholder="Enter your username"
+                required
               />
             </div>
           )}
+
+          {/* Email always shown for both login and registration */}
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              Email
+            </label>
+            <input
+              id="email"
+              type="text"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
+              placeholder="Enter your email"
+              required
+            />
+          </div>
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">

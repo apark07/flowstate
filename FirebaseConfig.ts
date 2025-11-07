@@ -30,6 +30,4 @@ export const analytics =
   typeof window !== "undefined" && import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
     ? getAnalytics(app)
     : undefined;
-
-
 //console.log("Checking if firebase app is initialized:", app.name);

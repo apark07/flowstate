@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { auth } from '../../FirebaseConfig.ts';
 
 interface BMIRecord {
   id: string;
@@ -13,7 +14,7 @@ interface BMIRecord {
 }
 
 export default function BMICalculatorPage() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   
   // Unit toggle
@@ -40,6 +41,11 @@ export default function BMICalculatorPage() {
       setHistory(JSON.parse(savedHistory));
     }
   }, []);
+
+  const handleLogout = () => {
+    auth.signOut();
+    navigate("/");
+  };
 
   // Calculate BMI in real-time
   useEffect(() => {
@@ -109,11 +115,6 @@ export default function BMICalculatorPage() {
     const updatedHistory = [record, ...history].slice(0, 10); // Keep last 10 records
     setHistory(updatedHistory);
     localStorage.setItem('bmiHistory', JSON.stringify(updatedHistory));
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate('/');
   };
 
   const getBMIGaugePosition = (bmi: number): number => {

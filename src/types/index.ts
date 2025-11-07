@@ -24,3 +24,8 @@ export interface WorkoutLog {
   weight?: number;
   date: string;
 }
+
+export interface UserData {
+  name: string;
+  email: string;
+}

@@ -1,14 +1,34 @@
-import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
+import { auth } from "../../FirebaseConfig.ts";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../../FirebaseConfig.ts";
+import { useEffect, useState } from "react";
+import { type UserData } from "../types/index.ts";
 
 export default function HomePage() {
-  const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [user, setUser] = useState<UserData | null>(null);
 
   const handleLogout = () => {
-    logout();
-    navigate('/');
+    auth.signOut();
+    navigate("/");
   };
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+        if (userDoc.exists()) {
+          setUser(userDoc.data() as UserData);
+        } else {
+          // reroute to home b/c no user found
+          navigate("/");
+        }
+      }
+    };
+    fetchUserData();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -20,7 +40,7 @@ export default function HomePage() {
               <h1 className="text-2xl font-bold text-indigo-600">FlowState</h1>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-gray-700">Welcome, {user?.username || user?.name}!</span>
+              <span className="text-gray-700">Welcome, {user?.name}!</span>
               <button
                 onClick={handleLogout}
                 className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
@@ -35,16 +55,18 @@ export default function HomePage() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-md p-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Dashboard
-          </h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Dashboard</h2>
           <p className="text-gray-600 mb-8">
-            Your fitness journey starts here. Track your progress, explore exercises, and get personalized recommendations!
+            Your fitness journey starts here. Track your progress, explore
+            exercises, and get personalized recommendations!
           </p>
 
           {/* Feature Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div onClick={() => navigate('/exercises')} className="cursor-pointer">
+            <div
+              onClick={() => navigate("/exercises")}
+              className="cursor-pointer"
+            >
               <FeatureCard
                 title="Exercises & Videos"
                 description="Browse exercises with animated demonstrations and form videos"
@@ -57,7 +79,7 @@ export default function HomePage() {
               icon="📊"
               comingSoon
             />
-            <div onClick={() => navigate('/bmi')} className="cursor-pointer">
+            <div onClick={() => navigate("/bmi")} className="cursor-pointer">
               <FeatureCard
                 title="BMI Calculator"
                 description="Calculate your Body Mass Index and track your health"
@@ -96,7 +118,12 @@ interface FeatureCardProps {
   comingSoon?: boolean;
 }
 
-function FeatureCard({ title, description, icon, comingSoon }: FeatureCardProps) {
+function FeatureCard({
+  title,
+  description,
+  icon,
+  comingSoon,
+}: FeatureCardProps) {
   return (
     <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-lg p-6 border border-indigo-100 hover:shadow-lg transition-shadow relative">
       {comingSoon && (
