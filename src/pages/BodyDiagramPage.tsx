@@ -1,14 +1,14 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { auth, db } from "../../FirebaseConfig";
-import { doc, getDoc } from "firebase/firestore";
-import { type UserData } from "../types/index.ts";
+import { useState } from "react";
+//import { useNavigate } from "react-router-dom";
+// import { auth, db } from "../../FirebaseConfig";
+// import { doc, getDoc } from "firebase/firestore";
+// import { type UserData } from "../types/index.ts";
 import Model, { type IExerciseData, type IMuscleStats } from "react-body-highlighter";
+import NavBar from "../components/NavBar.tsx";
 
 export default function BodyDiagramPage() {
-  const [user, setUser] = useState<UserData | null>(null);
   const [view, setView] = useState<"anterior" | "posterior">("anterior");
-  const navigate = useNavigate();
+  //const navigate = useNavigate();
 
   // Sample exercise data mapped to muscles
   const data: IExerciseData[] = [
@@ -24,24 +24,6 @@ export default function BodyDiagramPage() {
     { name: "Dumbbell Curls", muscles: ["biceps"] },
   ];
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      const currentUser = auth.currentUser;
-      if (currentUser) {
-        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-        if (userDoc.exists()) {
-          setUser(userDoc.data() as UserData);
-        }
-      }
-    };
-    fetchUserData();
-  }, []);
-
-  const handleLogout = () => {
-    auth.signOut();
-    navigate("/");
-  };
-
   const handleMuscleClick = (exercise: IMuscleStats) => {
     console.log(`Clicked on muscle: ${exercise.muscle} with ${exercise.data.frequency} exercises`);
     // TODO: Navigate to exercises page filtered by this muscle
@@ -51,33 +33,7 @@ export default function BodyDiagramPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navbar */}
-      <nav className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-8">
-              <h1
-                className="text-2xl font-bold text-indigo-600 cursor-pointer"
-                onClick={() => navigate("/home")}
-              >
-                FlowState
-              </h1>
-              <span className="text-gray-600">Body Diagram</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-gray-700">
-                Welcome, {user?.name || "User"}!
-              </span>
-              <button
-                onClick={handleLogout}
-                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <NavBar pageText="Body Diagram" />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

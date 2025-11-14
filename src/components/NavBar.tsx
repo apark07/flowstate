@@ -28,7 +28,7 @@ export default function NavBar({pageText}: {pageText: string}) {
       }
     };
     fetchUserData();
-  }, []);
+  });
 
   return (
     <nav className="bg-white shadow-sm border-b border-gray-200">

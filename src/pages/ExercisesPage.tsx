@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+//import { useNavigate } from 'react-router-dom';
 import { 
   fetchExercises, 
   fetchBodyParts,
@@ -8,11 +7,10 @@ import {
   DEFAULT_BODY_PARTS
 } from '../services/exerciseService';
 // import ExerciseImage from '../components/ExerciseImage';
-import { auth } from '../../FirebaseConfig.ts';
+import NavBar from '../components/NavBar.tsx';
 
 export default function ExercisesPage() {
-  const { user } = useAuth();
-  const navigate = useNavigate();
+  //const navigate = useNavigate();
   
   // State
   const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -22,11 +20,6 @@ export default function ExercisesPage() {
   const [selectedBodyPart, setSelectedBodyPart] = useState('');
   const [bodyParts, setBodyParts] = useState<string[]>(DEFAULT_BODY_PARTS);
   const [favorites, setFavorites] = useState<string[]>([]);
-
-  const handleLogout = () => {
-      auth.signOut();
-      navigate("/");
-    };
 
   // Load body parts and favorites
   useEffect(() => {
@@ -114,31 +107,7 @@ export default function ExercisesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navbar */}
-      <nav className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-8">
-              <h1 
-                className="text-2xl font-bold text-indigo-600 cursor-pointer"
-                onClick={() => navigate('/home')}
-              >
-                FlowState
-              </h1>
-              <span className="text-gray-600">Exercise Library</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-gray-700">Welcome, {user?.username || user?.name}!</span>
-              <button
-                onClick={handleLogout}
-                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <NavBar pageText="Exercise Library" />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

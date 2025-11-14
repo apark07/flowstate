@@ -1,52 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "../../FirebaseConfig.ts";
-import { doc, getDoc } from "firebase/firestore";
-import { useEffect, useState } from "react";
-import { type UserData } from "../types/index.ts";
+import NavBar from "../components/NavBar.tsx";
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const [user, setUser] = useState<UserData | null>(null);
-
-  const handleLogout = () => {
-    auth.signOut();
-    navigate("/");
-  };
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      const currentUser = auth.currentUser;
-      if (currentUser) {
-        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-        if (userDoc.exists()) {
-          setUser(userDoc.data() as UserData);
-        }
-      }
-    };
-    fetchUserData();
-  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navbar */}
-      <nav className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-indigo-600">FlowState</h1>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-gray-700">Welcome, {user?.name || "User"}!</span>
-              <button
-                onClick={handleLogout}
-                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <NavBar pageText="Home" />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
