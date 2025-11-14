@@ -18,8 +18,7 @@ export default function ExerciseImage({ exerciseId, alt, className }: ExerciseIm
       try {
         setLoading(true);
         setError(false);
-
-        const url = `https://exercisedb.p.rapidapi.com/image?resolution=720&exerciseId=${exerciseId}`;
+        const url = `https://exercisedb.p.rapidapi.com/image?exerciseId=${exerciseId}&resolution=180`;
         
         const response = await fetch(url, {
           headers: {
@@ -29,7 +28,9 @@ export default function ExerciseImage({ exerciseId, alt, className }: ExerciseIm
         });
 
         if (!response.ok) {
-          throw new Error('Failed to fetch image');
+          const errorText = await response.text();
+          console.error('API error response:', errorText);
+          throw new Error(`Failed to fetch image: ${response.status}`);
         }
 
         const blob = await response.blob();

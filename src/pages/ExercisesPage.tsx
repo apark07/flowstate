@@ -7,7 +7,7 @@ import {
   type Exercise, 
   DEFAULT_BODY_PARTS
 } from '../services/exerciseService';
-// import ExerciseImage from '../components/ExerciseImage';
+import ExerciseImage from '../components/ExerciseImage';
 import { auth } from '../../FirebaseConfig.ts';
 
 export default function ExercisesPage() {
@@ -273,18 +273,12 @@ function ExerciseCard({ exercise, isFavorite, onToggleFavorite }: ExerciseCardPr
   return (
     <>
       <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden">
-        {/* Exercise GIF */}
+        {/* Exercise Image */}
         <div className="relative h-48 bg-gray-100">
-          <img
-            src={exercise.gifUrl}
+          <ExerciseImage
+            exerciseId={exercise.id}
             alt={exercise.name}
             className="w-full h-full object-contain"
-            loading="lazy"
-            crossOrigin="anonymous"
-            onError={(e) => {
-              console.log('❌ Image failed to load:', exercise.gifUrl);
-              e.currentTarget.src = 'https://via.placeholder.com/400x300?text=No+Image';
-            }}
           />
           <button
             onClick={onToggleFavorite}
