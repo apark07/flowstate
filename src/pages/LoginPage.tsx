@@ -1,6 +1,9 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+//import { useNavigate } from 'react-router-dom';
+import { auth, db } from '../../FirebaseConfig.ts';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { type UserData } from '../types/index.ts';
+import { useAuth } from '../context/AuthContext.tsx';
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -8,25 +11,66 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const navigate = useNavigate();
-  const { login, register } = useAuth();
+
+  const { login, register } = useAuth()!;
 
   const handleSubmit = async (e: React.FormEvent) => {
+
     e.preventDefault();
     setError('');
-
+    
     try {
       if (isLogin) {
-        await login(username, password);
+        const response = await login(email, password);
+
+        if (!response!) { 
+          setError('Login failed. Please check your credentials and try again.');
+          return;
+        }
+        console.log("Login successful");
       } else {
-        await register(username, email, password);
+        if (!username) {
+          setError('Username is required for registration');
+          return;
+        }
+        
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email || !emailRegex.test(email)) {
+          setError('Please enter a valid email address');
+          return;
+        }
+
+        if (password.length < 7) {
+          setError('Password must be at least 7 characters long');
+          return;
+        }
+
+        // Perform registration
+        await register(email, password);
+        console.log("Registration successful");
+
+        const userId = auth.currentUser?.uid;
+        if (!userId) {
+          setError('User ID not found after registration. Try refreshing the page.');
+          return;
+        }
+
+        // There is a 'user' collection in Firestore where we store user info. Current fields are name and email.
+        // More may be added later
+        const userLoginData: UserData = {
+          name: username,
+          email: email
+        };
+
+        await setDoc(doc(db, 'user', userId), userLoginData);
       }
-      navigate('/home');
+      // do not do navigate('/home') here because the auth state listener in App.tsx will handle the redirect
     } catch (err) {
+      console.log("reached seterror");
       setError(err instanceof Error ? err.message : 'An error occurred');
     }
   };
-
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
@@ -62,37 +106,39 @@ export default function LoginPage() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
-              Username
-            </label>
-            <input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
-              placeholder="Enter your username"
-              required
-            />
-          </div>
-
+          {/* Username only shown during registration */}
           {!isLogin && (
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+                Username
               </label>
               <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
-                placeholder="Enter your email"
-                required={!isLogin}
+                placeholder="Enter your username"
+                required
               />
             </div>
           )}
+
+          {/* Email always shown for both login and registration */}
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              Email
+            </label>
+            <input
+              id="email"
+              type="text"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
+              placeholder="Enter your email"
+              required
+            />
+          </div>
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
