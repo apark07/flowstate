@@ -10,6 +10,7 @@ import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
 import BMICalculatorPage from "./pages/BMICalculatorPage";
 import ExercisesPage from "./pages/ExercisesPage";
+import BodyDiagramPage from "./pages/BodyDiagramPage";
 
 // Protected Route wrapper
 function ProtectedRoute({
@@ -95,6 +96,14 @@ function App() {
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated}>
               <ExercisesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/body-diagram"
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <BodyDiagramPage />
             </ProtectedRoute>
           }
         />

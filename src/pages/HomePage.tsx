@@ -69,6 +69,16 @@ export default function HomePage() {
                 icon="💪"
               />
             </div>
+            <div
+              onClick={() => navigate("/body-diagram")}
+              className="cursor-pointer"
+            >
+              <FeatureCard
+                title="Body Diagram"
+                description="Interactive body diagram to find exercises by muscle"
+                icon="🧍"
+              />
+            </div>
             <FeatureCard
               title="Track Progress"
               description="Log your workouts and track your progress over time"
@@ -92,12 +102,6 @@ export default function HomePage() {
               title="Flex AI"
               description="AI-powered chatbot for personalized workout recommendations"
               icon="🤖"
-              comingSoon
-            />
-            <FeatureCard
-              title="Body Diagram"
-              description="Interactive body diagram to find exercises by muscle"
-              icon="🧍"
               comingSoon
             />
           </div>
