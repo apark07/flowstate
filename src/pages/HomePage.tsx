@@ -17,7 +17,7 @@ export default function HomePage() {
     const fetchUserData = async () => {
       const currentUser = auth.currentUser;
       if (currentUser) {
-        const userDoc = await getDoc(doc(db, "user", currentUser.uid));
+        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
         if (userDoc.exists()) {
           setUser(userDoc.data() as UserData);
         }

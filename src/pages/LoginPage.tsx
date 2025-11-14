@@ -1,7 +1,7 @@
 import { useState } from 'react';
 //import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../../FirebaseConfig.ts';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { type UserData } from '../types/index.ts';
 import { useAuth } from '../context/AuthContext.tsx';
 
@@ -59,10 +59,11 @@ export default function LoginPage() {
         // More may be added later
         const userLoginData: UserData = {
           name: username,
-          email: email
+          email: email,
+          createdAt: new Date().toISOString(),
         };
 
-        await setDoc(doc(db, 'user', userId), userLoginData);
+        await setDoc(doc(db, 'users', userId), userLoginData);
       }
       // do not do navigate('/home') here because the auth state listener in App.tsx will handle the redirect
     } catch (err) {
