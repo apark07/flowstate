@@ -18,9 +18,9 @@ export default function ExerciseImage({ exerciseId, alt, className }: ExerciseIm
       try {
         setLoading(true);
         setError(false);
+        const resolution = 180; // resolution can be: 180, 360, 720, 1080
+        const url = `https://exercisedb.p.rapidapi.com/image?resolution=${resolution}&exerciseId=${exerciseId}`;
 
-        const url = `https://exercisedb.p.rapidapi.com/image?resolution=720&exerciseId=${exerciseId}`;
-        
         const response = await fetch(url, {
           headers: {
             'X-RapidAPI-Key': RAPIDAPI_KEY,

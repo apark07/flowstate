@@ -61,6 +61,7 @@ export const fetchExercises = async (filters: ExerciseFilters = {}): Promise<Exe
     }
 
     const data = await response.json();
+    console.log('API Response sample:', data[0]); // Log first exercise to inspect structure
     return data;
   } catch (error) {
     console.error('Error fetching exercises:', error);
