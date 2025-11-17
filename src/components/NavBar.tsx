@@ -36,7 +36,7 @@ export default function NavBar({pageText}: {pageText: string}) {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center gap-8">
             <h1
-              className="text-2xl font-bold text-indigo-600 cursor-pointer"
+              className="text-2xl font-bold text-indigo-600 cursor-pointer hover:text-indigo-500"
               onClick={() => navigate("/home")}
             >
               FlowState
