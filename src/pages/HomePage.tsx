@@ -52,12 +52,13 @@ export default function HomePage() {
                 icon="⚖️"
               />
             </div>
-            <FeatureCard
-              title="Workout Plans"
-              description="Create custom workout plans tailored to your goals"
-              icon="📝"
-              comingSoon
-            />
+            <div onClick={() => navigate("/workout-plans")} className="cursor-pointer">
+              <FeatureCard
+                title="Workout Plans"
+                description="Create custom workout plans tailored to your goals"
+                icon="📝"
+              />
+            </div>
             <FeatureCard
               title="Flex AI"
               description="AI-powered chatbot for personalized workout recommendations"
@@ -85,7 +86,7 @@ function FeatureCard({
   comingSoon,
 }: FeatureCardProps) {
   return (
-    <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-lg p-6 border border-indigo-100 hover:shadow-lg transition-shadow relative">
+    <div className="bg-gradient-to-br h-full from-indigo-50 to-blue-50 rounded-lg p-6 border border-indigo-100 hover:shadow-lg transition-shadow relative">
       {comingSoon && (
         <span className="absolute top-3 right-3 bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-1 rounded">
           Coming Soon
