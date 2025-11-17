@@ -11,6 +11,7 @@ import HomePage from "./pages/HomePage";
 import BMICalculatorPage from "./pages/BMICalculatorPage";
 import ExercisesPage from "./pages/ExercisesPage";
 import BodyDiagramPage from "./pages/BodyDiagramPage";
+import WorkoutPlans from "./pages/WorkoutPlans";
 
 // Protected Route wrapper
 function ProtectedRoute({
@@ -104,6 +105,14 @@ function App() {
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated}>
               <BodyDiagramPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/workout-plans"
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <WorkoutPlans />
             </ProtectedRoute>
           }
         />
