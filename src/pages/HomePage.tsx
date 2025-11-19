@@ -39,17 +39,18 @@ export default function HomePage() {
                 icon="🧍"
               />
             </div>
-            <FeatureCard
-              title="Track Progress"
-              description="Log your workouts and track your progress over time"
-              icon="📊"
-              comingSoon
-            />
             <div onClick={() => navigate("/bmi")} className="cursor-pointer">
               <FeatureCard
                 title="BMI Calculator"
                 description="Calculate your Body Mass Index and track your health"
                 icon="⚖️"
+              />
+            </div>
+            <div onClick={() => navigate("/track-progress")} className="cursor-pointer">
+              <FeatureCard
+                title="Track Progress"
+                description="Log your workouts and track your progress over time"
+                icon="📊"
               />
             </div>
             <div onClick={() => navigate("/workout-plans")} className="cursor-pointer">
