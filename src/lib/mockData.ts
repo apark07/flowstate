@@ -1,13 +1,9 @@
-export interface WorkoutLog {
-  id: string;
-  date: string;
-  duration: number; // in minutes
-  notes: string;
-  createdAt: string;
-}
+import { type WorkoutLog } from "../types/index.ts";
+import { auth } from "../../FirebaseConfig.ts";
 
 export const mockWorkoutLogs: WorkoutLog[] = [
   {
+    user_id: auth.currentUser?.uid || "user1",
     id: "1",
     date: "2025-11-19",
     duration: 45,
@@ -15,6 +11,7 @@ export const mockWorkoutLogs: WorkoutLog[] = [
     createdAt: "2025-11-19T10:00:00Z",
   },
   {
+    user_id: auth.currentUser?.uid || "user1",
     id: "2",
     date: "2025-11-17",
     duration: 60,
@@ -22,6 +19,7 @@ export const mockWorkoutLogs: WorkoutLog[] = [
     createdAt: "2025-11-17T15:30:00Z",
   },
   {
+    user_id: auth.currentUser?.uid || "user1",
     id: "3",
     date: "2025-11-15",
     duration: 30,

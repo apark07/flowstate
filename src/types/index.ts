@@ -16,17 +16,24 @@ export interface Exercise {
 }
 
 export interface WorkoutLog {
+  user_id: string;
   id: string;
-  userId: string;
-  exerciseId: string;
-  sets: number;
-  reps: number;
-  weight?: number;
   date: string;
+  duration: number; // in minutes
+  notes: string;
+  createdAt: string;
 }
 
 export interface UserData {
   name: string;
   email: string;
   createdAt?: string;
+}
+
+export interface WorkoutLog {
+  id: string;
+  date: string;
+  duration: number; // in minutes
+  notes: string;
+  createdAt: string;
 }
