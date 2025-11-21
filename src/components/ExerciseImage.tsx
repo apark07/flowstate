@@ -18,9 +18,14 @@ export default function ExerciseImage({ exerciseId, alt, className }: ExerciseIm
       try {
         setLoading(true);
         setError(false);
+<<<<<<< HEAD
         const resolution = 180; // resolution can be: 180, 360, 720, 1080
         const url = `https://exercisedb.p.rapidapi.com/image?resolution=${resolution}&exerciseId=${exerciseId}`;
 
+=======
+        const url = `https://exercisedb.p.rapidapi.com/image?exerciseId=${exerciseId}&resolution=180`;
+        
+>>>>>>> 22ec4474dddf1d14570b6d4ddddf4b5d754670ac
         const response = await fetch(url, {
           headers: {
             'X-RapidAPI-Key': RAPIDAPI_KEY,
@@ -29,7 +34,9 @@ export default function ExerciseImage({ exerciseId, alt, className }: ExerciseIm
         });
 
         if (!response.ok) {
-          throw new Error('Failed to fetch image');
+          const errorText = await response.text();
+          console.error('API error response:', errorText);
+          throw new Error(`Failed to fetch image: ${response.status}`);
         }
 
         const blob = await response.blob();
