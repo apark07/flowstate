@@ -1,8 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import NavBar from "../components/NavBar";
 import { mockWorkoutLogs } from "../lib/mockData";
 import { type WorkoutLog } from "../types/index.ts";
 import { auth, db } from "../../FirebaseConfig.ts";
+import { useNavigate } from "react-router-dom";
+import { getDocs, query, collection, where } from "firebase/firestore";
 
 export default function TrackProgress() {
   const [workouts, setWorkouts] = useState<WorkoutLog[]>(mockWorkoutLogs);
@@ -18,7 +20,49 @@ export default function TrackProgress() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
-  const itemsPerPage = 10;
+  const itemsPerPage = 5;
+
+  const navigator = useNavigate();
+
+  // Get workouts from database
+  const getUserWorkouts = async () => {
+    const userId = auth.currentUser?.uid;
+    if (!userId) {
+      navigator("/login");
+      return;
+    }
+
+    try {
+    // fetch the workouts from our Firestore  (not mock data)
+      const list: WorkoutLog[] = await fetchUserWorkouts(db, userId);
+      setWorkouts(list);
+    } catch (error) {
+      console.error("Error fetching workouts:", error);
+    }
+  }
+
+  const fetchUserWorkouts = async (db: any, userId: string) => {
+    try {
+      const workoutLogsCollectionRef = collection(db, "workout_logs");
+      const q = query(workoutLogsCollectionRef, where("user_id", "==", userId));
+      const querySnapshot = await getDocs(q);
+
+      const list: WorkoutLog[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data() as Omit<WorkoutLog, "id">;
+        list.push({ id: doc.id, ...(data as Record<string, any>) } as WorkoutLog);
+      });
+
+      return list;
+    } catch (error) {
+      console.error("Error fetching workouts from Firestore:", error);
+    }
+    return [];
+  };
+
+  useEffect(() => {
+    getUserWorkouts();
+  }, []);
 
   const handleOpenModal = (workout?: WorkoutLog) => {
     if (workout) {
@@ -87,6 +131,7 @@ export default function TrackProgress() {
 
   const handleDeleteWorkout = (id: string) => {
     if (confirm("Are you sure you want to delete this workout?")) {
+      // TODO : Make this prettier 
       setWorkouts(workouts.filter((w) => w.id !== id));
     }
   };
