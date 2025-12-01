@@ -80,7 +80,7 @@ export default function BodyDiagramPage() {
           </div>
 
           {/* Info Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+          <div className="gap-6 mt-8">
             <div className="bg-indigo-50 rounded-lg p-6 border border-indigo-100">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">
                 How to Use
@@ -90,18 +90,6 @@ export default function BodyDiagramPage() {
                 <li>✓ Switch between front and back views</li>
                 <li>✓ Color intensity shows exercise frequency</li>
                 <li>✓ Get personalized workout recommendations</li>
-              </ul>
-            </div>
-
-            <div className="bg-blue-50 rounded-lg p-6 border border-blue-100">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                Quick Stats
-              </h3>
-              <ul className="space-y-2 text-gray-700 text-sm">
-                <li>📋 {data.length} exercises in database</li>
-                <li>💪 All major muscle groups covered</li>
-                <li>🎯 Front and back view options</li>
-                <li>⚡ Real-time exercise lookup</li>
               </ul>
             </div>
           </div>
