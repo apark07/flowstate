@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const { login, register } = useAuth()!;
 
@@ -42,6 +43,11 @@ export default function LoginPage() {
 
         if (password.length < 7) {
           setError('Password must be at least 7 characters long');
+          return;
+        }
+
+        if (password !== confirmPassword) {
+          setError('Passwords do not match');
           return;
         }
 
