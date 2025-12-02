@@ -18,7 +18,7 @@ export default function HomePage() {
           </p>
 
           {/* Feature Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div
               onClick={() => navigate("/exercises")}
               className="cursor-pointer"
@@ -29,7 +29,7 @@ export default function HomePage() {
                 icon="💪"
               />
             </div>
-            <div
+            {/* <div
               onClick={() => navigate("/body-diagram")}
               className="cursor-pointer"
             >
@@ -38,7 +38,7 @@ export default function HomePage() {
                 description="Interactive body diagram to find exercises by muscle"
                 icon="🧍"
               />
-            </div>
+            </div> */}
             <div onClick={() => navigate("/bmi")} className="cursor-pointer">
               <FeatureCard
                 title="BMI Calculator"
@@ -53,13 +53,13 @@ export default function HomePage() {
                 icon="📊"
               />
             </div>
-            <div onClick={() => navigate("/workout-plans")} className="cursor-pointer">
+            {/* <div onClick={() => navigate("/workout-plans")} className="cursor-pointer">
               <FeatureCard
                 title="Workout Plans"
                 description="Create custom workout plans tailored to your goals"
                 icon="📝"
               />
-            </div>
+            </div> */}
             <FeatureCard
               title="Flex AI"
               description="AI-powered chatbot for personalized workout recommendations"

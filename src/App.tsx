@@ -5,14 +5,14 @@ import {
   Navigate,
 } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../FirebaseConfig";
 import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
 import BMICalculatorPage from "./pages/BMICalculatorPage";
 import ExercisesPage from "./pages/ExercisesPage";
-import BodyDiagramPage from "./pages/BodyDiagramPage";
-import WorkoutPlans from "./pages/WorkoutPlans";
 import TrackProgress from "./pages/TrackProgress";
+import WorkoutPlans from "./pages/WorkoutPlans";
 
 // Protected Route wrapper
 function ProtectedRoute({
@@ -20,16 +20,8 @@ function ProtectedRoute({
   isAuthenticated,
 }: {
   children: React.ReactNode;
-  isAuthenticated: boolean | null;
+  isAuthenticated: boolean;
 }) {
-  if (isAuthenticated === null) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
-      </div>
-    );
-  }
-
   return isAuthenticated ? <>{children}</> : <Navigate to="/" replace />;
 }
 
@@ -39,32 +31,31 @@ function PublicRoute({
   isAuthenticated,
 }: {
   children: React.ReactNode;
-  isAuthenticated: boolean | null;
+  isAuthenticated: boolean;
 }) {
-  if (isAuthenticated === null) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
-      </div>
-    );
-  }
-
   return !isAuthenticated ? <>{children}</> : <Navigate to="/home" replace />;
 }
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  //const [loading, setLoading] = useState<boolean>(true);
-  // set loading state was for debugging, we might need to delete this or use it later.
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       console.log("Auth state changed:", user ? "logged in" : "logged out");
       setIsAuthenticated(!!user);
-      //setLoading(false);
+      setLoading(false);
     });
     return () => unsubscribe();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="text-indigo-600 text-lg font-medium">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <Router>
@@ -102,10 +93,10 @@ function App() {
           }
         />
         <Route
-          path="/body-diagram"
+          path="/track-progress"
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <BodyDiagramPage />
+              <TrackProgress />
             </ProtectedRoute>
           }
         />
@@ -114,14 +105,6 @@ function App() {
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated}>
               <WorkoutPlans />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/track-progress"
-          element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <TrackProgress />
             </ProtectedRoute>
           }
         />
