@@ -10,7 +10,6 @@ import NavBar from '../components/NavBar.tsx';
 import BodyDiagram from '../components/BodyDiagram.tsx';
 
 export default function ExercisesPage() {
-  // State
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +18,6 @@ export default function ExercisesPage() {
   const [bodyParts, setBodyParts] = useState<string[]>(DEFAULT_BODY_PARTS);
   const [favorites, setFavorites] = useState<string[]>([]);
 
-  // Load body parts and favorites
   useEffect(() => {
     const loadBodyParts = async () => {
       const parts = await fetchBodyParts();
@@ -35,7 +33,6 @@ export default function ExercisesPage() {
     }
   }, []);
 
-  // Fetch exercises when filters change
   useEffect(() => {
     loadExercises();
   }, [selectedBodyPart]);
@@ -81,8 +78,6 @@ export default function ExercisesPage() {
   const handleMuscleClick = (muscleName: string) => {
     // TODO: When ready to implement, map muscle names to body parts and trigger search
     console.log('Muscle clicked:', muscleName);
-    // Example: setSelectedBodyPart(mapMuscleToBodyPart(muscleName));
-    // For now, just log to avoid API calls
   };
 
   const toggleFavorite = (exerciseId: string) => {
@@ -114,7 +109,6 @@ export default function ExercisesPage() {
     <div className="min-h-screen bg-gray-50">
       <NavBar pageText="Exercise Library" />
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Left Sidebar - Body Diagram */}
@@ -124,11 +118,8 @@ export default function ExercisesPage() {
             </div>
           </div>
 
-          {/* Main Content Area */}
           <div className="lg:col-span-3">
-            {/* Search and Filters */}
             <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-              {/* Search Bar */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Search Exercises
@@ -151,7 +142,6 @@ export default function ExercisesPage() {
                 </div>
               </div>
 
-              {/* Filters */}
               <div className="grid grid-cols-1 gap-4 mb-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -172,7 +162,6 @@ export default function ExercisesPage() {
                 </div>
               </div>
 
-              {/* Clear Filters Button */}
               {(selectedBodyPart || searchTerm) && (
                 <button
                   onClick={clearFilters}
@@ -183,7 +172,6 @@ export default function ExercisesPage() {
               )}
             </div>
 
-            {/* Loading State */}
             {loading && (
               <div className="text-center py-12">
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
@@ -191,21 +179,18 @@ export default function ExercisesPage() {
               </div>
             )}
 
-            {/* Error State */}
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
                 {error}
               </div>
             )}
 
-            {/* Results Count */}
             {!loading && !error && exercises.length > 0 && (
               <div className="mb-4 text-gray-600">
                 Found {exercises.length} exercise{exercises.length !== 1 ? 's' : ''}
               </div>
             )}
 
-            {/* Exercise Grid */}
             {!loading && !error && exercises.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {exercises.map((exercise) => (
@@ -219,7 +204,6 @@ export default function ExercisesPage() {
               </div>
             )}
 
-            {/* Empty State */}
             {!loading && !error && exercises.length === 0 && (
               <div className="text-center py-12 bg-white rounded-lg shadow-md">
                 <div className="text-6xl mb-4">💪</div>
@@ -276,7 +260,6 @@ function ExerciseCard({ exercise, isFavorite, onToggleFavorite }: ExerciseCardPr
         </div>
 
         <div className="p-6">
-          {/* Header */}
           <h3 className="text-lg font-semibold text-gray-900 mb-3">
             {formatLabel(exercise.name)}
           </h3>
@@ -294,7 +277,6 @@ function ExerciseCard({ exercise, isFavorite, onToggleFavorite }: ExerciseCardPr
             </span>
           </div>
 
-          {/* Instructions Button */}
           <button
             onClick={() => setShowModal(true)}
             className="text-indigo-600 hover:text-indigo-700 font-medium text-sm flex items-center gap-1"

@@ -26,7 +26,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    // Single auth state listener - let Firebase handle persistence
     const unsubscribe = auth.onAuthStateChanged((firebaseUser) => {
       if (firebaseUser) {
         const user = {
@@ -46,17 +45,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     await signInWithEmailAndPassword(auth, email, password);
-    // onAuthStateChanged will handle setting user state
   };
 
   const register = async (email: string, password: string) => {
     await createUserWithEmailAndPassword(auth, email, password);
-    // onAuthStateChanged will handle setting user state
   };
 
   const logout = () => {
     auth.signOut();
-    // onAuthStateChanged will handle clearing user state
   };
 
   const isAuthenticated = user !== null;

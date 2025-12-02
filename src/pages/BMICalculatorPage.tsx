@@ -27,7 +27,6 @@ export default function BMICalculatorPage() {
         if (userDoc.exists()) {
           setUser(userDoc.data() as UserData);
         } else {
-          // reroute to home b/c no user found
           navigate("/");
         }
       }
@@ -40,24 +39,19 @@ export default function BMICalculatorPage() {
 
   const navigate = useNavigate();
 
-  // Unit toggle
   const [unit, setUnit] = useState<"metric" | "imperial">("imperial");
 
-  // Metric inputs
   const [heightCm, setHeightCm] = useState<string>("");
   const [weightKg, setWeightKg] = useState<string>("");
 
-  // Imperial inputs
   const [heightFeet, setHeightFeet] = useState<string>("");
   const [heightInches, setHeightInches] = useState<string>("");
   const [weightLbs, setWeightLbs] = useState<string>("");
 
-  // Results
   const [bmi, setBmi] = useState<number | null>(null);
   const [category, setCategory] = useState<string>("");
   const [history, setHistory] = useState<BMIRecord[]>([]);
 
-  // Load history from localStorage on mount
   useEffect(() => {
     const savedHistory = localStorage.getItem("bmiHistory");
     if (savedHistory) {
@@ -95,7 +89,6 @@ export default function BMICalculatorPage() {
     }
   };
 
-  // Calculate BMI in real-time
   useEffect(() => {
     calculateBMI();
   }, [heightCm, weightKg, heightFeet, heightInches, weightLbs, unit]);
@@ -138,14 +131,12 @@ export default function BMICalculatorPage() {
       weight: unit === "metric" ? parseFloat(weightKg) : parseFloat(weightLbs),
     };
 
-    const updatedHistory = [record, ...history].slice(0, 10); // Keep last 10 records
+    const updatedHistory = [record, ...history].slice(0, 10);
     setHistory(updatedHistory);
     localStorage.setItem("bmiHistory", JSON.stringify(updatedHistory));
   };
 
   const getBMIGaugePosition = (bmi: number): number => {
-    // Map BMI to percentage (0-100) for gauge
-    // Range: 15 to 35
     const min = 15;
     const max = 35;
     const clamped = Math.max(min, Math.min(max, bmi));
@@ -156,17 +147,14 @@ export default function BMICalculatorPage() {
     <div className="min-h-screen bg-gray-50">
       <NavBar pageText="BMI Calculator" />
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Calculator Section */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-md p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
                 Calculate Your BMI
               </h2>
 
-              {/* Unit Toggle */}
               <div className="flex mb-6 bg-gray-100 rounded-lg p-1 max-w-xs">
                 <button
                   onClick={() => setUnit("imperial")}
@@ -190,7 +178,6 @@ export default function BMICalculatorPage() {
                 </button>
               </div>
 
-              {/* Input Form */}
               <div className="space-y-6">
                 {unit === "metric" ? (
                   <>
@@ -268,7 +255,6 @@ export default function BMICalculatorPage() {
                 )}
               </div>
 
-              {/* BMI Result */}
               {bmi && (
                 <div className="mt-8 p-6 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-lg border border-indigo-100">
                   <div className="text-center mb-4">
@@ -315,9 +301,7 @@ export default function BMICalculatorPage() {
             </div>
           </div>
 
-          {/* History & Info Section */}
           <div className="space-y-6">
-            {/* BMI Categories Info */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 BMI Categories
@@ -346,7 +330,6 @@ export default function BMICalculatorPage() {
               </div>
             </div>
 
-            {/* History */}
             {history.length > 0 && (
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">

@@ -1,25 +1,17 @@
 import { useState, useEffect } from "react";
 import NavBar from "../components/NavBar";
-import { mockWorkoutLogs, type WorkoutLog } from "../lib/mockData";
+import { type WorkoutLog } from "../lib/mockData";
 import {
-  addDoc,
   collection,
-  deleteDoc,
   doc,
   getDocs,
   query,
-  updateDoc,
   where,
 } from "firebase/firestore";
 import { auth, db } from "../../FirebaseConfig";
 
-// rows in database: createdAt, date, duration, notes, user_id
-
-// todo: CUD of CRUD (R already done)
-
 export default function TrackProgress() {
   const [workouts, setWorkouts] = useState<WorkoutLog[]>([]);
-  //const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -27,7 +19,7 @@ export default function TrackProgress() {
     duration: "",
     notes: "",
   });
-  const [loading, setLoading] = useState(false); // todo: implement loading state in the html
+  const [loading, setLoading] = useState(false);
 
   const fetchWorkouts = async () => {
     setLoading(true);
@@ -43,7 +35,6 @@ export default function TrackProgress() {
         return;
       } else {
         const workoutLogs: WorkoutLog[] = [];
-        // build workout logs from docs sorted by date from most recent --> oldest, where most recent shows on top of the first page and oldest shows last on last page
 
         querySnapshot.forEach((doc) => {
           const data = doc.data();
@@ -56,8 +47,6 @@ export default function TrackProgress() {
           });
         });
 
-        // sorting function that returns 1 if b > a, -1 if a > b, 0 if equal
-        // its confusing, so here are the docs: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort
         setWorkouts(
           workoutLogs.sort(
             (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -65,7 +54,7 @@ export default function TrackProgress() {
         );
       }
     } catch (err) {
-      console.error("Error fetching workouts:", err); // todo: change this so it shows the user error instead of just console logging
+      console.error("Error fetching workouts:", err);
     }
     setLoading(false);
   };
@@ -150,7 +139,6 @@ export default function TrackProgress() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navbar */}
       <NavBar pageText="Track Your Progress" />
 
       {/* Main Content */}
@@ -244,7 +232,6 @@ export default function TrackProgress() {
             </h2>
 
             <div className="space-y-6">
-              {/* Date Input */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Date
@@ -259,7 +246,6 @@ export default function TrackProgress() {
                 />
               </div>
 
-              {/* Duration Input */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Duration (minutes)
@@ -276,7 +262,6 @@ export default function TrackProgress() {
                 />
               </div>
 
-              {/* Notes Textarea */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Workout Notes

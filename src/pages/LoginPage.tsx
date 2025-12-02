@@ -1,5 +1,4 @@
 import { useState } from 'react';
-//import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../../FirebaseConfig.ts';
 import { doc, setDoc } from 'firebase/firestore';
 import { type UserData } from '../types/index.ts';
@@ -51,7 +50,6 @@ export default function LoginPage() {
           return;
         }
 
-        // Perform registration
         await register(email, password);
         console.log("Registration successful");
 
@@ -61,8 +59,6 @@ export default function LoginPage() {
           return;
         }
 
-        // There is a 'user' collection in Firestore where we store user info. Current fields are name and email.
-        // More may be added later
         const userLoginData: UserData = {
           name: username,
           email: email,
@@ -71,7 +67,6 @@ export default function LoginPage() {
 
         await setDoc(doc(db, 'users', userId), userLoginData);
       }
-      // do not do navigate('/home') here because the auth state listener in App.tsx will handle the redirect
     } catch (err) {
       console.log("reached seterror");
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -81,13 +76,11 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
-        {/* Logo/Brand */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-indigo-600 mb-2">FlowState</h1>
           <p className="text-gray-600">Your fitness journey starts here</p>
         </div>
 
-        {/* Toggle between Login/Register */}
         <div className="flex mb-6 bg-gray-100 rounded-lg p-1">
           <button
             onClick={() => setIsLogin(true)}
@@ -111,9 +104,7 @@ export default function LoginPage() {
           </button>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Username only shown during registration */}
           {!isLogin && (
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
@@ -131,7 +122,6 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* Email always shown for both login and registration */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
               Email

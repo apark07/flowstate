@@ -4,17 +4,10 @@ import {
   type Schema,
   GenerateContentResponse,
 } from "@google/genai";
-import type { Exercise } from "./exerciseService"; // Reuse the Exercise interface
- // Reuse the Exercise interface
+import type { Exercise } from "./exerciseService";
 
-// The client will automatically pick up VITE_GEMINI_API_KEY from environment variables.
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 
-// ------------------------------------------------
-// 1. Structured Output Schema for Exercises
-// ------------------------------------------------
-
-// Define the JSON Schema for a single Exercise object
 const ExerciseSchema: Schema = {
   type: Type.OBJECT,
   properties: {
@@ -53,55 +46,52 @@ const ExerciseSchema: Schema = {
   ],
 };
 
-// Define the final response structure: an array of Exercises
 const ExercisesResponseSchema: Schema = {
   type: Type.ARRAY,
   items: ExerciseSchema,
 };
 
-// ------------------------------------------------
-// 2. Core Fetching Functions
-// ------------------------------------------------
-
 /**
  * Generates structured exercise data using the Gemini API.
- * @param prompt - The text prompt instructing the model what exercises to generate.
- * @returns A promise that resolves to an array of Exercise objects.
  */
 export const fetchStructuredExercises = async (
   prompt: string
 ): Promise<Exercise[]> => {
+  let jsonString = '';
   try {
-    const model = "gemini-2.5-flash"; // Fast and good for structured data
+    const model = "gemini-2.5-flash";
+
+    const finalPrompt = `${prompt} IMPORTANT: You MUST respond ONLY with the JSON array that adheres to the provided schema. Do NOT include any conversational text, explanations, or Markdown formatting like \`\`\`json.`;
 
     const response: GenerateContentResponse = await ai.models.generateContent({
       model,
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      contents: [{ role: "user", parts: [{ text: finalPrompt }] }],
       config: {
         responseMimeType: "application/json",
         responseSchema: ExercisesResponseSchema,
       },
     });
 
-    // The response.text() should be a valid JSON string adhering to ExercisesResponseSchema
-    const jsonString = response.text().trim();
+    if (response.text === undefined) {
+        throw new Error("Model failed to return text content (response.text is undefined).");
+    }
+    jsonString = response.text.trim(); 
+    
     const exercises: Exercise[] = JSON.parse(jsonString);
 
     return exercises;
   } catch (error) {
     console.error("Gemini API Error (Structured Fetch):", error);
-    throw new Error("Failed to generate structured exercise data.");
+    throw new Error(`Failed to generate structured exercise data. Raw output: ${jsonString.substring(0, 100)}... Error: ${error instanceof Error ? error.message : String(error)}`);
   }
 };
 
 /**
  * Sends a conversational prompt to the Gemini API for the Flex AI Chatbot.
- * @param prompt - The user's message.
- * @returns A promise that resolves to the AI's text response.
  */
 export const fetchChatResponse = async (prompt: string): Promise<string> => {
     try {
-        const model = "gemini-2.5-flash"; // Fast for chat
+        const model = "gemini-2.5-flash";
         const response: GenerateContentResponse = await ai.models.generateContent({
             model,
             contents: [{ 
@@ -109,6 +99,10 @@ export const fetchChatResponse = async (prompt: string): Promise<string> => {
                 parts: [{ text: `You are Flex AI, a friendly and motivational fitness coach. Respond to the user's request. Keep your answers concise and supportive. If the user asks for exercises, recommend 3-5 and encourage them to check the Exercise Library. \n\nUser: ${prompt}` }] 
             }],
         });
+        
+        if (response.text === undefined) {
+             return "I'm sorry, Flex AI couldn't generate a response. The content was blocked or unavailable.";
+        }
         return response.text;
     } catch (error) {
         console.error("Gemini API Error (Chatbot):", error);

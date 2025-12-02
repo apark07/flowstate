@@ -38,7 +38,8 @@ export default function HomePage() {
                 description="Interactive body diagram to find exercises by muscle"
                 icon="🏃"
               />
-            </div> */}
+            </div> 
+            */}
             <div onClick={() => navigate("/bmi")} className="cursor-pointer">
               <FeatureCard
                 title="BMI Calculator"
@@ -59,7 +60,8 @@ export default function HomePage() {
                 description="Create custom workout plans tailored to your goals"
                 icon="📅"
               />
-            </div> */}
+            </div> 
+            */}
             <div onClick={() => navigate("/flex-ai")} className="cursor-pointer">
               <FeatureCard
                 title="Flex AI"

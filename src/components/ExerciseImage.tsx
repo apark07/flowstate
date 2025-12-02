@@ -4,18 +4,14 @@ interface ExerciseImageProps {
   exerciseId: string;
   alt: string;
   className?: string;
-  gifUrl: string; // ADDED: Now accepts the image URL directly
+  gifUrl: string;
 }
-
-// Removed RAPIDAPI_KEY and direct API fetch
 
 export default function ExerciseImage({ exerciseId, alt, className, gifUrl }: ExerciseImageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  // We now assume the gifUrl is a direct link (either to a real image or a placeholder)
   useEffect(() => {
-    // Basic image loading check logic for loading/error states
     if (!gifUrl) {
       setError(true);
       setLoading(false);
@@ -33,9 +29,6 @@ export default function ExerciseImage({ exerciseId, alt, className, gifUrl }: Ex
       setLoading(false);
     };
     img.src = gifUrl;
-    
-    // NOTE: Object URL cleanup is no longer needed since we are using a direct URL.
-    // If you were generating a new URL (like createObjectURL), you would include a cleanup.
 
   }, [gifUrl, exerciseId]);
 
