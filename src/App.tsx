@@ -12,6 +12,7 @@ import HomePage from "./pages/HomePage";
 import BMICalculatorPage from "./pages/BMICalculatorPage";
 import ExercisesPage from "./pages/ExercisesPage";
 import TrackProgress from "./pages/TrackProgress";
+import FlexAIPage from "./pages/FlexAIPage"; // ADDED
 
 // Protected Route wrapper
 function ProtectedRoute({
@@ -96,6 +97,14 @@ function App() {
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated}>
               <TrackProgress />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/flex-ai" // ADDED
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <FlexAIPage />
             </ProtectedRoute>
           }
         />

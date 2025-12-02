@@ -265,6 +265,7 @@ function ExerciseCard({ exercise, isFavorite, onToggleFavorite }: ExerciseCardPr
             exerciseId={exercise.id}
             alt={exercise.name}
             className="w-full h-full object-contain"
+            gifUrl={exercise.gifUrl}
           />
           <button
             onClick={onToggleFavorite}
@@ -343,6 +344,7 @@ function ExerciseCard({ exercise, isFavorite, onToggleFavorite }: ExerciseCardPr
                       exerciseId={exercise.id}
                       alt={exercise.name}
                       className="w-full h-auto object-contain"
+                      gifUrl={exercise.gifUrl}
                     />
                   </div>
                   

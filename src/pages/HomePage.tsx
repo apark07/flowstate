@@ -26,7 +26,7 @@ export default function HomePage() {
               <FeatureCard
                 title="Exercises & Videos"
                 description="Browse exercises with animated demonstrations and form videos"
-                icon="💪"
+                icon="🏋️"
               />
             </div>
             {/* <div
@@ -36,7 +36,7 @@ export default function HomePage() {
               <FeatureCard
                 title="Body Diagram"
                 description="Interactive body diagram to find exercises by muscle"
-                icon="🧍"
+                icon="🏃"
               />
             </div> */}
             <div onClick={() => navigate("/bmi")} className="cursor-pointer">
@@ -50,22 +50,23 @@ export default function HomePage() {
               <FeatureCard
                 title="Track Progress"
                 description="Log your workouts and track your progress over time"
-                icon="📊"
+                icon="📝"
               />
             </div>
             {/* <div onClick={() => navigate("/workout-plans")} className="cursor-pointer">
               <FeatureCard
                 title="Workout Plans"
                 description="Create custom workout plans tailored to your goals"
-                icon="📝"
+                icon="📅"
               />
             </div> */}
-            <FeatureCard
-              title="Flex AI"
-              description="AI-powered chatbot for personalized workout recommendations"
-              icon="🤖"
-              comingSoon
-            />
+            <div onClick={() => navigate("/flex-ai")} className="cursor-pointer">
+              <FeatureCard
+                title="Flex AI"
+                description="AI-powered chatbot for personalized workout recommendations"
+                icon="🧠"
+              />
+            </div>
           </div>
         </div>
       </main>

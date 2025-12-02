@@ -4,56 +4,40 @@ interface ExerciseImageProps {
   exerciseId: string;
   alt: string;
   className?: string;
+  gifUrl: string; // ADDED: Now accepts the image URL directly
 }
 
-const RAPIDAPI_KEY = import.meta.env.VITE_RAPIDAPI_KEY;
+// Removed RAPIDAPI_KEY and direct API fetch
 
-export default function ExerciseImage({ exerciseId, alt, className }: ExerciseImageProps) {
-  const [imageSrc, setImageSrc] = useState<string>('');
+export default function ExerciseImage({ exerciseId, alt, className, gifUrl }: ExerciseImageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
+  // We now assume the gifUrl is a direct link (either to a real image or a placeholder)
   useEffect(() => {
-    const fetchImage = async () => {
-      try {
-        setLoading(true);
-        setError(false);
-        const resolution = 180; // resolution can be: 180, 360, 720, 1080
-        const url = `https://exercisedb.p.rapidapi.com/image?resolution=${resolution}&exerciseId=${exerciseId}`;
-
-        const response = await fetch(url, {
-          headers: {
-            'X-RapidAPI-Key': RAPIDAPI_KEY,
-            'X-RapidAPI-Host': 'exercisedb.p.rapidapi.com'
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch image');
-        }
-
-        const blob = await response.blob();
-        const objectUrl = URL.createObjectURL(blob);
-        setImageSrc(objectUrl);
-        setLoading(false);
-      } catch (err) {
-        console.error('Error loading image:', err);
-        setError(true);
-        setLoading(false);
-      }
-    };
-
-    if (exerciseId) {
-      fetchImage();
+    // Basic image loading check logic for loading/error states
+    if (!gifUrl) {
+      setError(true);
+      setLoading(false);
+      return;
     }
+    
+    setLoading(true);
+    setError(false);
 
-    // Cleanup: revoke object URL when component unmounts
-    return () => {
-      if (imageSrc) {
-        URL.revokeObjectURL(imageSrc);
-      }
+    const img = new Image();
+    img.onload = () => setLoading(false);
+    img.onerror = () => {
+      console.error(`Error loading image for ID ${exerciseId} at URL: ${gifUrl}`);
+      setError(true);
+      setLoading(false);
     };
-  }, [exerciseId]);
+    img.src = gifUrl;
+    
+    // NOTE: Object URL cleanup is no longer needed since we are using a direct URL.
+    // If you were generating a new URL (like createObjectURL), you would include a cleanup.
+
+  }, [gifUrl, exerciseId]);
 
   if (loading) {
     return (
@@ -63,7 +47,7 @@ export default function ExerciseImage({ exerciseId, alt, className }: ExerciseIm
     );
   }
 
-  if (error || !imageSrc) {
+  if (error || !gifUrl) {
     return (
       <div className={`${className} flex items-center justify-center bg-gray-200`}>
         <div className="text-center p-4">
@@ -76,7 +60,7 @@ export default function ExerciseImage({ exerciseId, alt, className }: ExerciseIm
 
   return (
     <img
-      src={imageSrc}
+      src={gifUrl}
       alt={alt}
       className={className}
     />

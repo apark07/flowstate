@@ -1,13 +1,14 @@
-const RAPIDAPI_KEY = import.meta.env.VITE_RAPIDAPI_KEY;
-const BASE_URL = 'https://exercisedb.p.rapidapi.com';
+import { fetchStructuredExercises } from "./geminiService";
 
+// The Exercise interface is kept for compatibility with ExercisesPage.tsx
+// It is now the expected output structure from the Gemini API
 export interface Exercise {
   id: string;
   name: string;
   bodyPart: string;
   target: string;
   equipment: string;
-  gifUrl?: string; // Optional since we'll construct it
+  gifUrl: string; // Changed to required as Gemini will generate a placeholder URL
   instructions: string[];
   secondaryMuscles: string[];
   difficulty: string;
@@ -22,90 +23,48 @@ export interface ExerciseFilters {
   name?: string;
 }
 
-const fetchOptions = {
-  headers: {
-    'X-RapidAPI-Key': RAPIDAPI_KEY,
-    'X-RapidAPI-Host': 'exercisedb.p.rapidapi.com'
-  }
-};
+// NOTE: All RapidAPI functionality has been removed and replaced with Gemini API.
 
-// Fetch all exercises (or by filters)
+/**
+ * Fetches exercises using the Gemini API to generate structured data.
+ * The prompt is constructed based on the provided filters.
+ */
 export const fetchExercises = async (filters: ExerciseFilters = {}): Promise<Exercise[]> => {
   try {
-    let url = `${BASE_URL}/exercises`;
+    let prompt = "Generate a list of 50 common fitness exercises.";
 
-    // If filtering by bodyPart
     if (filters.bodyPart) {
-      url = `${BASE_URL}/exercises/bodyPart/${filters.bodyPart}`;
-    } 
-    // If filtering by target muscle
-    else if (filters.target) {
-      url = `${BASE_URL}/exercises/target/${filters.target}`;
+      prompt = `Generate a list of 50 common fitness exercises primarily targeting the body part: ${filters.bodyPart}.`;
+    } else if (filters.target) {
+      prompt = `Generate a list of 50 exercises that primarily target the muscle: ${filters.target}.`;
+    } else if (filters.equipment) {
+      prompt = `Generate a list of 50 common exercises that use the following equipment: ${filters.equipment}.`;
+    } else if (filters.name) {
+      // For name search, we request specific exercises related to the name
+      prompt = `Generate a list of up to 50 exercises where the name includes or is similar to '${filters.name}'.`;
     }
-    // If filtering by equipment
-    else if (filters.equipment) {
-      url = `${BASE_URL}/exercises/equipment/${filters.equipment}`;
-    }
-    // If searching by name
-    else if (filters.name) {
-      url = `${BASE_URL}/exercises/name/${filters.name}`;
-    }
+    
+    // Add instruction for image placeholder
+    prompt += " For the 'gifUrl' property, use a generic hosted placeholder URL that is different for every exercise. Use the format 'https://placehold.co/360x360/E0E7FF/000000?text=EXERCISE_ID' where EXERCISE_ID is the 'id' property.";
 
-    // Add limit to avoid loading too many exercises
-    url += '?limit=50';
+    const data = await fetchStructuredExercises(prompt);
+    
+    // Fallback/Safety Check: Ensure a GIF URL is present by enforcing the placeholder rule
+    return data.map(exercise => ({
+        ...exercise,
+        gifUrl: exercise.gifUrl || `https://placehold.co/360x360/E0E7FF/000000?text=${exercise.id.toUpperCase()}`
+    }));
 
-    const response = await fetch(url, fetchOptions);
-
-    if (!response.ok) {
-      throw new Error(`API Error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('API Response sample:', data[0]); // Log first exercise to inspect structure
-    return data;
   } catch (error) {
-    console.error('Error fetching exercises:', error);
-    throw error;
+    console.error('Error fetching exercises from Gemini:', error);
+    // Since the API is not a dedicated exercise DB, we return an empty array on failure.
+    throw new Error('Failed to load exercises. The AI service may be unavailable or the request failed.');
   }
 };
 
-// Fetch available body parts
-export const fetchBodyParts = async (): Promise<string[]> => {
-  try {
-    const response = await fetch(`${BASE_URL}/exercises/bodyPartList`, fetchOptions);
-    if (!response.ok) throw new Error(`API Error: ${response.status}`);
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching body parts:', error);
-    return [];
-  }
-};
+// Since Gemini is not a database, we return static lists to populate dropdowns.
 
-// Fetch available target muscles
-export const fetchTargetMuscles = async (): Promise<string[]> => {
-  try {
-    const response = await fetch(`${BASE_URL}/exercises/targetList`, fetchOptions);
-    if (!response.ok) throw new Error(`API Error: ${response.status}`);
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching targets:', error);
-    return [];
-  }
-};
-
-// Fetch available equipment
-export const fetchEquipmentList = async (): Promise<string[]> => {
-  try {
-    const response = await fetch(`${BASE_URL}/exercises/equipmentList`, fetchOptions);
-    if (!response.ok) throw new Error(`API Error: ${response.status}`);
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching equipment:', error);
-    return [];
-  }
-};
-
-// Default body parts (in case API fails)
+// Default body parts (in case API fails or for dropdown population)
 export const DEFAULT_BODY_PARTS = [
   'back',
   'cardio',
@@ -119,34 +78,50 @@ export const DEFAULT_BODY_PARTS = [
   'waist'
 ];
 
-// Default equipment (in case API fails)
+/**
+ * Replaces the old API call for body parts with static data.
+ */
+export const fetchBodyParts = async (): Promise<string[]> => {
+  return Promise.resolve(DEFAULT_BODY_PARTS);
+};
+
+/**
+ * We keep the interface for these, but they are not used in ExercisesPage.tsx.
+ * For completeness, they will return empty lists or defaults if needed.
+ */
+export const fetchTargetMuscles = async (): Promise<string[]> => {
+  return Promise.resolve([
+    'abductors',
+    'adductors',
+    'biceps',
+    'calves',
+    'cardiovascular system',
+    'delts',
+    'forearms',
+    'glutes',
+    'hamstrings',
+    'lats',
+    'pectorals',
+    'quads',
+    'shoulders',
+    'traps',
+    'triceps',
+    'upper back'
+  ]);
+};
+
+// Default equipment (in case API fails) - kept for mock completeness
 export const DEFAULT_EQUIPMENT = [
   'assisted',
   'band',
   'barbell',
   'body weight',
-  'bosu ball',
-  'cable',
   'dumbbell',
-  'elliptical machine',
-  'ez barbell',
-  'hammer',
   'kettlebell',
-  'leverage machine',
-  'medicine ball',
-  'olympic barbell',
-  'resistance band',
-  'roller',
-  'rope',
-  'skierg machine',
-  'sled machine',
-  'smith machine',
-  'stability ball',
-  'stationary bike',
-  'stepmill machine',
-  'tire',
-  'trap bar',
-  'upper body ergometer',
-  'weighted',
-  'wheel roller'
+  'machine',
+  'other'
 ];
+
+export const fetchEquipmentList = async (): Promise<string[]> => {
+  return Promise.resolve(DEFAULT_EQUIPMENT);
+};
