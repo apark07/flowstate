@@ -2,10 +2,13 @@ import { useState, useEffect } from "react";
 import NavBar from "../components/NavBar";
 import { type WorkoutLog } from "../lib/mockData";
 import {
+  addDoc,
   collection,
+  deleteDoc,
   doc,
   getDocs,
   query,
+  setDoc,
   where,
 } from "firebase/firestore";
 import { auth, db } from "../../FirebaseConfig";
@@ -32,6 +35,7 @@ export default function TrackProgress() {
 
       if (querySnapshot.empty) {
         setWorkouts([]);
+        setLoading(false);
         return;
       } else {
         const workoutLogs: WorkoutLog[] = [];
@@ -39,6 +43,7 @@ export default function TrackProgress() {
         querySnapshot.forEach((doc) => {
           const data = doc.data();
           workoutLogs.push({
+            user_id: data.user_id,
             id: doc.id,
             date: data.date,
             duration: data.duration,
@@ -92,14 +97,16 @@ export default function TrackProgress() {
     });
   };
 
-  const handleSaveWorkout = () => {
+  const handleSaveWorkout = async () => {
     if (!formData.date || !formData.duration || !formData.notes.trim()) {
       alert("Please fill in all fields");
       return;
     }
 
     if (editingId) {
-      // Update existing workout
+      const workoutLog = workouts.find((w) => w.id === editingId);
+
+      // update existing workout in the local state
       setWorkouts(
         workouts.map((w) =>
           w.id === editingId
@@ -112,14 +119,35 @@ export default function TrackProgress() {
             : w
         )
       );
-    } else {
-      // Create new workout
-      const newWorkout: WorkoutLog = {
-        id: Date.now().toString(),
+
+      // update existing workout in Firestore
+      await setDoc(doc(db, "workout_logs", editingId), {
+        ...workoutLog,
         date: formData.date,
         duration: parseInt(formData.duration),
         notes: formData.notes,
-        createdAt: new Date().toISOString(),
+      } as Omit<WorkoutLog, "id">); // we do this when setting doc to not include the id field because the id field is already auto made by Firestore 
+    
+    } else {
+      const now = new Date().toISOString();
+
+      // create new workout in Firestore (without the local id field)
+      const docRef = await addDoc(collection(db, "workout_logs"), {
+        user_id: auth.currentUser!.uid,
+        date: formData.date,
+        duration: parseInt(formData.duration),
+        notes: formData.notes,
+        createdAt: now,
+      });
+
+      // Update the local workout with the Firestore-generated ID
+      const newWorkout: WorkoutLog = {
+        user_id: auth.currentUser!.uid,
+        date: formData.date,
+        duration: parseInt(formData.duration),
+        notes: formData.notes,
+        createdAt: now,
+        id: docRef.id,
       };
       setWorkouts([newWorkout, ...workouts]);
     }
@@ -127,20 +155,24 @@ export default function TrackProgress() {
     handleCloseModal();
   };
 
-  const handleDeleteWorkout = (id: string) => {
+  const handleDeleteWorkout = async (id: string) => {
     if (confirm("Are you sure you want to delete this workout?")) {
       setWorkouts(workouts.filter((w) => w.id !== id));
     }
+
+    // delete workout from Firestore
+    await deleteDoc(doc(db, "workout_logs", id));
   };
 
   const sortedWorkouts = [...workouts].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
 
+
   return (
     <div className="min-h-screen bg-gray-50">
       <NavBar pageText="Track Your Progress" />
-
+      
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
@@ -159,7 +191,14 @@ export default function TrackProgress() {
         </div>
 
         {/* Workouts List */}
-        {sortedWorkouts.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-12 bg-white rounded-lg shadow-md">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
+            <h3 className="text-xl font-semibold text-gray-900">
+              Loading your workouts...
+            </h3>
+          </div>
+        ) : sortedWorkouts.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-lg shadow-md">
             <div className="text-6xl mb-4">📋</div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
