@@ -9,6 +9,17 @@ import ExerciseImage from '../components/ExerciseImage';
 import NavBar from '../components/NavBar.tsx';
 import BodyDiagram from '../components/BodyDiagram.tsx';
 
+// Define a simple structure for caching exercise data
+interface CachedExercises {
+    timestamp: number;
+    data: Exercise[];
+}
+
+// Define cache key constants
+const CACHE_KEY_PREFIX = 'exercise_cache_';
+// Cache expiration time: 1 hour (3600000 milliseconds)
+const CACHE_EXPIRATION = 3600000;
+
 export default function ExercisesPage() {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(false);
@@ -38,8 +49,38 @@ export default function ExercisesPage() {
   }, [selectedBodyPart]);
 
   const loadExercises = async () => {
+    // Determine the cache key based on the active filter
+    const currentFilter = selectedBodyPart || 'all';
+    const cacheKey = CACHE_KEY_PREFIX + currentFilter;
+
+    // 1. Check Cache First
+    const cachedItem = localStorage.getItem(cacheKey);
+    if (cachedItem) {
+        try {
+            const cache: CachedExercises = JSON.parse(cachedItem);
+            const isStale = Date.now() - cache.timestamp > CACHE_EXPIRATION;
+
+            if (!isStale) {
+                console.log('Loading exercises from cache.');
+                setExercises(cache.data);
+                setError(null);
+                return; // Stop loading immediately
+            }
+        } catch (e) {
+            console.error('Error parsing cache, fetching fresh data:', e);
+            localStorage.removeItem(cacheKey);
+        }
+    }
+
+    // 2. If no valid cache, load from API
     setLoading(true);
     setError(null);
+
+    if (!import.meta.env.VITE_GEMINI_API_KEY) {
+        setLoading(false);
+        setError("Configuration Error: Gemini API Key is missing. Please set VITE_GEMINI_API_KEY in your .env.local file.");
+        return;
+    }
 
     try {
       const filters: any = {};
@@ -47,8 +88,14 @@ export default function ExercisesPage() {
 
       const data = await fetchExercises(filters);
       setExercises(data);
+
+      // 3. Save new data to cache
+      const cache: CachedExercises = { timestamp: Date.now(), data };
+      localStorage.setItem(cacheKey, JSON.stringify(cache));
+
     } catch (err) {
-      setError('Failed to load exercises. Please check your API key and try again.');
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred while fetching exercises.';
+      setError(`Failed to load exercises: ${errorMessage}. Check your console for full error details.`);
       console.error(err);
     } finally {
       setLoading(false);
@@ -64,11 +111,19 @@ export default function ExercisesPage() {
     setLoading(true);
     setError(null);
 
+    if (!import.meta.env.VITE_GEMINI_API_KEY) {
+        setLoading(false);
+        setError("Configuration Error: Gemini API Key is missing. Cannot search.");
+        return;
+    }
+
     try {
+      // NOTE: Search results should NOT be cached, as they are dynamic
       const data = await fetchExercises({ name: searchTerm });
       setExercises(data);
     } catch (err) {
-      setError('Failed to search exercises. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred while searching exercises.';
+      setError(`Failed to search exercises: ${errorMessage}.`);
       console.error(err);
     } finally {
       setLoading(false);
@@ -119,7 +174,9 @@ export default function ExercisesPage() {
           </div>
 
           <div className="lg:col-span-3">
+            {/* Search and Filters */}
             <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+              {/* Search Bar */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Search Exercises
@@ -142,6 +199,7 @@ export default function ExercisesPage() {
                 </div>
               </div>
 
+              {/* Filters */}
               <div className="grid grid-cols-1 gap-4 mb-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -162,6 +220,7 @@ export default function ExercisesPage() {
                 </div>
               </div>
 
+              {/* Clear Filters Button */}
               {(selectedBodyPart || searchTerm) && (
                 <button
                   onClick={clearFilters}
@@ -172,6 +231,7 @@ export default function ExercisesPage() {
               )}
             </div>
 
+            {/* Loading State */}
             {loading && (
               <div className="text-center py-12">
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
@@ -179,18 +239,21 @@ export default function ExercisesPage() {
               </div>
             )}
 
+            {/* Error State */}
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
                 {error}
               </div>
             )}
 
+            {/* Results Count */}
             {!loading && !error && exercises.length > 0 && (
               <div className="mb-4 text-gray-600">
                 Found {exercises.length} exercise{exercises.length !== 1 ? 's' : ''}
               </div>
             )}
 
+            {/* Exercise Grid */}
             {!loading && !error && exercises.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {exercises.map((exercise) => (
@@ -204,6 +267,7 @@ export default function ExercisesPage() {
               </div>
             )}
 
+            {/* Empty State */}
             {!loading && !error && exercises.length === 0 && (
               <div className="text-center py-12 bg-white rounded-lg shadow-md">
                 <div className="text-6xl mb-4">💪</div>
