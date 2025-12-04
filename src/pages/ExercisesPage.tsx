@@ -76,13 +76,8 @@ export default function ExercisesPage() {
     setLoading(true);
     setError(null);
 
-    if (!import.meta.env.VITE_GEMINI_API_KEY) {
-        setLoading(false);
-        setError("Configuration Error: Gemini API Key is missing. Please set VITE_GEMINI_API_KEY in your .env.local file.");
-        return;
-    }
-
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const filters: any = {};
       if (selectedBodyPart) filters.bodyPart = selectedBodyPart;
 
@@ -110,12 +105,6 @@ export default function ExercisesPage() {
 
     setLoading(true);
     setError(null);
-
-    if (!import.meta.env.VITE_GEMINI_API_KEY) {
-        setLoading(false);
-        setError("Configuration Error: Gemini API Key is missing. Cannot search.");
-        return;
-    }
 
     try {
       // NOTE: Search results should NOT be cached, as they are dynamic
@@ -313,7 +302,6 @@ function ExerciseCard({ exercise, isFavorite, onToggleFavorite }: ExerciseCardPr
             exerciseId={exercise.id}
             alt={exercise.name}
             className="w-full h-full object-contain"
-            gifUrl={exercise.gifUrl}
           />
           <button
             onClick={onToggleFavorite}
@@ -390,7 +378,6 @@ function ExerciseCard({ exercise, isFavorite, onToggleFavorite }: ExerciseCardPr
                       exerciseId={exercise.id}
                       alt={exercise.name}
                       className="w-full h-auto object-contain"
-                      gifUrl={exercise.gifUrl}
                     />
                   </div>
                   

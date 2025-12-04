@@ -1,4 +1,5 @@
-import { fetchStructuredExercises } from "./geminiService";
+const RAPIDAPI_KEY = import.meta.env.VITE_RAPIDAPI_KEY;
+const RAPIDAPI_HOST = 'exercisedb.p.rapidapi.com';
 
 export interface Exercise {
   id: string;
@@ -9,9 +10,6 @@ export interface Exercise {
   gifUrl: string;
   instructions: string[];
   secondaryMuscles: string[];
-  difficulty: string;
-  category: string;
-  description: string;
 }
 
 export interface ExerciseFilters {
@@ -22,33 +20,49 @@ export interface ExerciseFilters {
 }
 
 /**
- * Fetches exercises using the Gemini API to generate structured data.
+ * Fetches exercises from the RapidAPI ExerciseDB API.
  */
 export const fetchExercises = async (filters: ExerciseFilters = {}): Promise<Exercise[]> => {
+  if (!RAPIDAPI_KEY) {
+    throw new Error('RapidAPI key is not configured. Please set VITE_RAPIDAPI_KEY in your .env file.');
+  }
+
   try {
-    let prompt = "Generate a list of 50 common fitness exercises.";
+    let url = `https://${RAPIDAPI_HOST}/exercises?limit=100`;
 
     if (filters.bodyPart) {
-      prompt = `Generate a list of 50 common fitness exercises primarily targeting the body part: ${filters.bodyPart}.`;
+      url = `https://${RAPIDAPI_HOST}/exercises/bodyPart/${encodeURIComponent(filters.bodyPart)}?limit=100`;
     } else if (filters.target) {
-      prompt = `Generate a list of 50 exercises that primarily target the muscle: ${filters.target}.`;
+      url = `https://${RAPIDAPI_HOST}/exercises/target/${encodeURIComponent(filters.target)}?limit=100`;
     } else if (filters.equipment) {
-      prompt = `Generate a list of 50 common exercises that use the following equipment: ${filters.equipment}.`;
-    } else if (filters.name) {
-      prompt = `Generate a list of up to 50 exercises where the name includes or is similar to '${filters.name}'.`;
+      url = `https://${RAPIDAPI_HOST}/exercises/equipment/${encodeURIComponent(filters.equipment)}?limit=100`;
     }
-    
-    prompt += " For the 'gifUrl' property, use a generic hosted placeholder URL that is different for every exercise. Use the format 'https://placehold.co/360x360/E0E7FF/000000?text=EXERCISE_ID' where EXERCISE_ID is the 'id' property.";
 
-    const data = await fetchStructuredExercises(prompt);
-    
-    return data.map(exercise => ({
-        ...exercise,
-        gifUrl: exercise.gifUrl || `https://placehold.co/360x360/E0E7FF/000000?text=${String(exercise.id).toUpperCase()}`
-    }));
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'X-RapidAPI-Key': RAPIDAPI_KEY,
+        'X-RapidAPI-Host': RAPIDAPI_HOST
+      }
+    });
 
+    if (!response.ok) {
+      throw new Error(`RapidAPI request failed with status ${response.status}`);
+    }
+
+    const exercises = await response.json();
+
+    // Filter by name if provided
+    let filtered = exercises;
+    if (filters.name) {
+      filtered = exercises.filter((ex: Exercise) =>
+        ex.name.toLowerCase().includes(filters.name!.toLowerCase())
+      );
+    }
+
+    return filtered;
   } catch (error) {
-    console.error('Error fetching exercises from Gemini:', error);
+    console.error('Error fetching exercises from RapidAPI:', error);
     throw error;
   }
 };
