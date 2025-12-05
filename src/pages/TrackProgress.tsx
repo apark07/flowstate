@@ -410,7 +410,8 @@ export default function TrackProgress() {
                   placeholder="e.g., 45"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                   min="1"
-                />
+                  
+                /> 
               </div>
 
               <div>
@@ -419,13 +420,22 @@ export default function TrackProgress() {
                 </label>
                 <textarea
                   value={formData.notes}
-                  onChange={(e) =>
-                    setFormData({ ...formData, notes: e.target.value })
-                  }
+                  onChange={(e) => {
+                    const text = e.target.value;
+                    if (text.length <= 400) {
+                      setFormData({ ...formData, notes: text });
+                    } else {
+                      setFormData({ ...formData, notes: text.slice(0, 400) });
+                    }
+                  }}
                   placeholder="Describe what you did today... exercises, sets, reps, how you felt, etc."
                   rows={6}
+                  maxLength={400}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none resize-none"
                 />
+                <p className="text-xs text-gray-500 mt-2">
+                  {formData.notes.length}/400 characters
+                </p>
               </div>
             </div>
 
