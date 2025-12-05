@@ -23,6 +23,10 @@ export default function TrackProgress() {
     notes: "",
   });
   const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+
+  const exercisesPerPage = 5;
 
   const fetchWorkouts = async () => {
     setLoading(true);
@@ -168,6 +172,49 @@ export default function TrackProgress() {
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
 
+  // Pagination logic
+  const totalPages = Math.ceil(sortedWorkouts.length / exercisesPerPage);
+  const startIndex = (currentPage - 1) * exercisesPerPage;
+  const paginatedWorkouts = sortedWorkouts.slice(startIndex, startIndex + exercisesPerPage);
+
+  // Generate page numbers with ellipsis
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    const maxPagesToShow = 5; // Show max 5 page buttons
+    const halfWindow = Math.floor(maxPagesToShow / 2);
+
+    if (totalPages <= maxPagesToShow) {
+      // Show all pages if total is small
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    // Always show first page
+    pages.push(1);
+
+    // Calculate start and end of middle pages
+    const startPage = Math.max(2, currentPage - halfWindow);
+    const endPage = Math.min(totalPages - 1, currentPage + halfWindow);
+
+    // Add left ellipsis if needed
+    if (startPage > 2) {
+      pages.push('...');
+    }
+
+    // Add middle pages
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    // Add right ellipsis if needed
+    if (endPage < totalPages - 1) {
+      pages.push('...');
+    }
+
+    // Always show last page
+    pages.push(totalPages);
+
+    return pages;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -216,7 +263,7 @@ export default function TrackProgress() {
           </div>
         ) : (
           <div className="space-y-4">
-            {sortedWorkouts.map((workout) => (
+            {paginatedWorkouts.map((workout) => (
               <div
                 key={workout.id}
                 className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
@@ -258,6 +305,71 @@ export default function TrackProgress() {
                 </p>
               </div>
             ))}
+          </div>
+        )}
+
+        {/*Pagination controls*/}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center mt-6 gap-2">
+            {/* First Page Button */}
+            <button
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage === 1}
+              className="px-3 py-2 rounded-lg font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Go to first page"
+            >
+              &lt;&lt;
+            </button>
+
+            {/* Previous Page Button */}
+            <button
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-2 rounded-lg font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Go to previous page"
+            >
+              &lt;
+            </button>
+
+            {/* Page Numbers */}
+            <div className="flex gap-1">
+              {getPageNumbers().map((page, index) => (
+                <button
+                  key={index}
+                  onClick={() => typeof page === 'number' && setCurrentPage(page)}
+                  disabled={page === '...'}
+                  className={`px-4 py-2 rounded-lg font-medium ${
+                    page === '...'
+                      ? 'cursor-default text-gray-500'
+                      : currentPage === page
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            {/* Next Page Button */}
+            <button
+              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-2 rounded-lg font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Go to next page"
+            >
+              &gt;
+            </button>
+
+            {/* Last Page Button */}
+            <button
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={currentPage === totalPages}
+              className="px-3 py-2 rounded-lg font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Go to last page"
+            >
+              &gt;&gt;
+            </button>
           </div>
         )}
       </main>
