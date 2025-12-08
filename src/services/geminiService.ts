@@ -3,12 +3,14 @@ import {
   Type,
   type Schema,
   GenerateContentResponse,
+  Chat, // Import Chat
 } from "@google/genai";
 import type { Exercise } from "./exerciseService";
 
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 
 const ExerciseSchema: Schema = {
+// ... ExerciseSchema definition remains the same
   type: Type.OBJECT,
   properties: {
     id: { type: Type.STRING, description: "A unique, short identifier for the exercise, e.g., 'squat', 'bpress'." },
@@ -86,26 +88,28 @@ export const fetchStructuredExercises = async (
   }
 };
 
+// ------------------------------------------------
+// Conversational Chat Functions (Updated)
+// ------------------------------------------------
+
+// System Instruction for the Flex AI persona
+const FLEX_AI_SYSTEM_INSTRUCTION = "You are Flex AI, a friendly, motivational, and highly knowledgeable fitness coach. Maintain a supportive and energetic tone. Keep your responses concise and action-oriented. Remember past messages to continue the conversation. If the user asks for exercises or plans, encourage them to check the Exercise Library or Track Progress sections.";
+
 /**
- * Sends a conversational prompt to the Gemini API for the Flex AI Chatbot.
+ * Initializes a new persistent chat session with the Flex AI persona.
+ * @returns A Chat session object from the Gemini SDK.
  */
-export const fetchChatResponse = async (prompt: string): Promise<string> => {
-    try {
-        const model = "gemini-2.5-flash";
-        const response: GenerateContentResponse = await ai.models.generateContent({
-            model,
-            contents: [{ 
-                role: "user", 
-                parts: [{ text: `You are Flex AI, a friendly and motivational fitness coach. Respond to the user's request. Keep your answers concise and supportive. If the user asks for exercises, recommend 3-5 and encourage them to check the Exercise Library. \n\nUser: ${prompt}` }] 
-            }],
-        });
-        
-        if (response.text === undefined) {
-             return "I'm sorry, Flex AI couldn't generate a response. The content was blocked or unavailable.";
-        }
-        return response.text;
-    } catch (error) {
-        console.error("Gemini API Error (Chatbot):", error);
-        return "I'm sorry, I'm having trouble connecting to my fitness brain right now. Please try again later.";
-    }
+export const startNewChat = (): Chat => {
+    const model = "gemini-2.5-flash"; 
+    
+    // Create a new chat session with system instructions for memory retention
+    return ai.chats.create({
+        model: model,
+        config: {
+            systemInstruction: FLEX_AI_SYSTEM_INSTRUCTION,
+        },
+    });
 };
+
+// Removed the old fetchChatResponse since the new method uses the Chat object directly.
+// The send logic is moved to FlexAIPage.tsx for session control.

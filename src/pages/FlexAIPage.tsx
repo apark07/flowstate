@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import NavBar from "../components/NavBar.tsx";
-import { fetchChatResponse } from "../services/geminiService.ts";
+import { startNewChat } from "../services/geminiService.ts";
+import { type Chat } from "@google/genai"; // Import Chat type
 
 interface Message {
   text: string;
@@ -12,12 +13,26 @@ export default function FlexAIPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [chatSession, setChatSession] = useState<Chat | null>(null); // State to hold the persistent chat session
+
+  // Initialize the chat session on component mount
+  useEffect(() => {
+    try {
+        const session = startNewChat();
+        setChatSession(session);
+        console.log("Flex AI Chat session started.");
+    } catch (e) {
+        setError("Failed to initialize Flex AI. Please check your Gemini API key.");
+        console.error("Chat initialization error:", e);
+    }
+  }, []);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || loading) return;
+    if (!input.trim() || loading || !chatSession) return;
 
-    const userMessage: Message = { text: input.trim(), sender: "user" };
+    const userMessageText = input.trim();
+    const userMessage: Message = { text: userMessageText, sender: "user" };
     
     // Add user message to history
     setMessages((prev) => [...prev, userMessage]);
@@ -26,8 +41,14 @@ export default function FlexAIPage() {
     setError(null);
 
     try {
-      // Fetch AI response
-      const aiResponseText = await fetchChatResponse(input.trim());
+      // Use chatSession to send message, retaining history
+      const response = await chatSession.sendMessage({ message: userMessageText });
+      
+      const aiResponseText = response.text;
+
+      if (aiResponseText === undefined || aiResponseText === null) {
+        throw new Error("Model failed to generate a text response.");
+      }
       
       const aiMessage: Message = {
         text: aiResponseText,
@@ -36,9 +57,10 @@ export default function FlexAIPage() {
       
       // Add AI response to history
       setMessages((prev) => [...prev, aiMessage]);
+
     } catch (err) {
-      console.error(err);
-      setError("Could not get a response from Flex AI. Please try again.");
+      console.error("Gemini Chat Error:", err);
+      setError("I'm sorry, I lost my train of thought. Please start a new query.");
     } finally {
       setLoading(false);
     }
@@ -66,7 +88,7 @@ export default function FlexAIPage() {
                   Welcome to Flex AI!
                 </h3>
                 <p className="max-w-md">
-                  I'm your personalized AI fitness coach. Ask me for workout ideas, diet tips, or help understanding an exercise.
+                  I'm your personalized AI fitness coach. Ask me for workout ideas, diet tips, or help continuing a conversation with context!
                 </p>
               </div>
             ) : (
@@ -117,13 +139,13 @@ export default function FlexAIPage() {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                disabled={loading}
+                disabled={loading || !chatSession}
                 className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none disabled:bg-gray-100"
-                placeholder="Ask Flex AI for a workout plan or fitness tips..."
+                placeholder={!chatSession ? "Initializing chat..." : "Ask Flex AI for a workout plan or fitness tips..."}
               />
               <button
                 type="submit"
-                disabled={!input.trim() || loading}
+                disabled={!input.trim() || loading || !chatSession}
                 className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors font-medium disabled:bg-indigo-300"
               >
                 Send
