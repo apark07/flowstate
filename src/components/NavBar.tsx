@@ -5,7 +5,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../FirebaseConfig";
 import { type UserData } from "../types/index.ts";
 
-export default function NavBar({pageText}: {pageText: string}) {
+export default function NavBar({pageText, showLogout = true}: {pageText: string; showLogout?: boolean}) {
   const [user, setUser] = useState<UserData | null>(null);
 
   const navigate = useNavigate();
@@ -44,15 +44,19 @@ export default function NavBar({pageText}: {pageText: string}) {
             <span className="text-gray-600">{pageText}</span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-gray-700">
-              Welcome, {user?.name || "User"}!
-            </span>
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
-            >
-              Logout
-            </button>
+            {showLogout && (
+              <>
+                <span className="text-gray-700">
+                  Welcome, {user?.name || "User"}!
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
+                >
+                  Logout
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>

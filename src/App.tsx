@@ -7,12 +7,13 @@ import {
 import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../FirebaseConfig";
+import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
 import BMICalculatorPage from "./pages/BMICalculatorPage";
 import ExercisesPage from "./pages/ExercisesPage";
 import TrackProgress from "./pages/TrackProgress";
-import FlexAIPage from "./pages/FlexAIPage"; // ADDED
+import FlexAIPage from "./pages/FlexAIPage";
 
 // Protected Route wrapper
 function ProtectedRoute({
@@ -62,6 +63,10 @@ function App() {
       <Routes>
         <Route
           path="/"
+          element={<LandingPage />}
+        />
+        <Route
+          path="/login"
           element={
             <PublicRoute isAuthenticated={isAuthenticated}>
               <LoginPage />
