@@ -13,12 +13,33 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "../../FirebaseConfig";
 
+// Helper function to get today's date in YYYY-MM-DD format (local timezone)
+const getTodayDateString = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// Helper function to format a date string (YYYY-MM-DD) without timezone shifting
+const formatDateString = (dateString: string) => {
+  const [year, month, day] = dateString.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
+
 export default function TrackProgress() {
   const [workouts, setWorkouts] = useState<WorkoutLog[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    date: new Date().toISOString().split("T")[0],
+    date: getTodayDateString(),
     duration: "",
     notes: "",
   });
@@ -58,7 +79,7 @@ export default function TrackProgress() {
 
         setWorkouts(
           workoutLogs.sort(
-            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+            (a, b) => b.date.localeCompare(a.date)
           )
         );
       }
@@ -83,7 +104,7 @@ export default function TrackProgress() {
     } else {
       setEditingId(null);
       setFormData({
-        date: new Date().toISOString().split("T")[0],
+        date: getTodayDateString(),
         duration: "",
         notes: "",
       });
@@ -272,12 +293,7 @@ export default function TrackProgress() {
                   <div>
                     <div className="flex items-center gap-4">
                       <h3 className="text-lg font-semibold text-gray-900">
-                        {new Date(workout.date).toLocaleDateString("en-US", {
-                          weekday: "long",
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
+                        {formatDateString(workout.date)}
                       </h3>
                       <span className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium">
                         {workout.duration} mins
