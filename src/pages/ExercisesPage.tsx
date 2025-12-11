@@ -28,6 +28,7 @@ export default function ExercisesPage() {
   const [selectedBodyPart, setSelectedBodyPart] = useState('');
   const [bodyParts, setBodyParts] = useState<string[]>(DEFAULT_BODY_PARTS);
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [showFavorites, setShowFavorites] = useState(false);
 
   useEffect(() => {
     const loadBodyParts = async () => {
@@ -47,6 +48,16 @@ export default function ExercisesPage() {
   useEffect(() => {
     loadExercises();
   }, [selectedBodyPart]);
+
+  const toggleShowFavoritesAndSearch = () => {
+    setShowFavorites(!showFavorites);
+    if (!showFavorites) {
+      const favExercises = exercises.filter(ex => favorites.includes(ex.id));
+      setExercises(favExercises);
+    } else {
+      loadExercises();
+    }
+  }
 
   const loadExercises = async () => {
     // Determine the cache key based on the active filter
@@ -175,7 +186,7 @@ export default function ExercisesPage() {
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                     placeholder="Search by exercise name..."
                   />
@@ -235,13 +246,29 @@ export default function ExercisesPage() {
               </div>
             )}
 
-            {/* Results Count */}
-            {!loading && !error && exercises.length > 0 && (
-              <div className="mb-4 text-gray-600">
-                Found {exercises.length} exercise{exercises.length !== 1 ? 's' : ''}
-              </div>
-            )}
+            {/* Num exercises + Favorites in a row */}
+            <div className="flex mb-4 justify-between items-center">
+              {/* Results Count */}
+              {!loading && !error && exercises.length > 0 && (
+                <div className="mb-4 text-gray-600">
+                  Found {exercises.length} exercise{exercises.length !== 1 ? 's' : ''}
+                </div>
+              )}
 
+              {/* Show exercises the user favorited via toggle */}
+              <div className="mb-4">
+                <button
+                  onClick={() => {
+                    const favExercises = exercises.filter(ex => favorites.includes(ex.id));
+                    setExercises(showFavorites ? favExercises : exercises);
+                    toggleShowFavoritesAndSearch();
+                  }}
+                  className="bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-500 transition-colors"
+                >
+                  {showFavorites ? 'Show All Exercises' : `Show My Favorite Exercises (${favorites.length})`}
+                </button>
+              </div>
+            </div>
             {/* Exercise Grid */}
             {!loading && !error && exercises.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -331,7 +358,7 @@ function ExerciseCard({ exercise, isFavorite, onToggleFavorite }: ExerciseCardPr
 
           <button
             onClick={() => setShowModal(true)}
-            className="text-indigo-600 hover:text-indigo-700 font-medium text-sm flex items-center gap-1"
+            className="text-indigo-600 hover:text-indigo-700 font-medium text-sm flex items-center gap-1 bg-blue-50 rounded-lg px-3 py-1 hover:bg-blue-100 transition-colors"
           >
             📖 Show Instructions
           </button>
@@ -363,7 +390,7 @@ function ExerciseCard({ exercise, isFavorite, onToggleFavorite }: ExerciseCardPr
                   onClick={() => setShowModal(false)}
                   className="text-white hover:text-gray-200 text-3xl font-bold leading-none"
                 >
-                  ×
+                  &times;
                 </button>
               </div>
             </div>
