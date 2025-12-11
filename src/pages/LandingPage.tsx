@@ -31,12 +31,12 @@ function LandingPage() {
                 >
                   Get started
                 </button>
-                {/* <a
+                <a
                   href="#features"
                   className="inline-flex items-center justify-center px-6 py-3 rounded-md bg-white border border-gray-200 text-gray-800 font-medium hover:shadow transition"
                 >
                   Learn more
-                </a> */}
+                </a>
               </div>
             </div>
 
@@ -64,8 +64,6 @@ function LandingPage() {
           </div>
         </div>
       </header>
-
-{/* we can refactor these into cards*/}
 
       <main id="features" className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <section className="bg-white rounded-lg shadow p-8">
