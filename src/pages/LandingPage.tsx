@@ -29,7 +29,7 @@ function LandingPage() {
                   onClick={() => navigate("/login")}
                   className="inline-flex items-center justify-center px-6 py-3 rounded-md bg-indigo-600 text-white font-medium shadow hover:bg-indigo-700 transition"
                 >
-                  Get started
+                  Log in
                 </button>
                 <a
                   href="#features"
