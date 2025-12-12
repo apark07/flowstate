@@ -8,6 +8,9 @@ import {
 import ExerciseImage from '../components/ExerciseImage';
 import NavBar from '../components/NavBar.tsx';
 import BodyDiagram from '../components/BodyDiagram.tsx';
+import Pagination from '../components/Pagination.tsx';
+
+const EXERCISES_PER_PAGE = 10;
 
 // Define a simple structure for caching exercise data
 interface CachedExercises {
@@ -29,6 +32,7 @@ export default function ExercisesPage() {
   const [bodyParts, setBodyParts] = useState<string[]>(DEFAULT_BODY_PARTS);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [showFavorites, setShowFavorites] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     const loadBodyParts = async () => {
@@ -45,11 +49,14 @@ export default function ExercisesPage() {
     }
   }, []);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
+    setCurrentPage(1); // Reset to first page when body part changes
     loadExercises();
   }, [selectedBodyPart]);
 
   const toggleShowFavoritesAndSearch = () => {
+    setCurrentPage(1); // Reset to first page when toggling favorites
     setShowFavorites(!showFavorites);
     if (!showFavorites) {
       const favExercises = exercises.filter(ex => favorites.includes(ex.id));
@@ -146,12 +153,29 @@ export default function ExercisesPage() {
     
     setFavorites(updatedFavorites);
     localStorage.setItem('favoriteExercises', JSON.stringify(updatedFavorites));
+    
+    // If we're showing favorites, reset to page 1 to reflect the updated favorites
+    if (showFavorites) {
+      setCurrentPage(1);
+    }
   };
 
   const clearFilters = () => {
+    setCurrentPage(1); // Reset to first page when clearing filters
     setSelectedBodyPart('');
     setSearchTerm('');
   };
+
+  // Calculate pagination
+  const displayedExercises = showFavorites
+    ? exercises.filter(ex => favorites.includes(ex.id))
+    : exercises;
+  
+  const paginatedExercises = displayedExercises.slice(
+    (currentPage - 1) * EXERCISES_PER_PAGE,
+    currentPage * EXERCISES_PER_PAGE
+  );
+  const totalPages = Math.ceil(displayedExercises.length / EXERCISES_PER_PAGE);
 
   const formatLabel = (str: string) => {
     return str
@@ -258,11 +282,7 @@ export default function ExercisesPage() {
               {/* Show exercises the user favorited via toggle */}
               <div className="mb-4">
                 <button
-                  onClick={() => {
-                    const favExercises = exercises.filter(ex => favorites.includes(ex.id));
-                    setExercises(showFavorites ? favExercises : exercises);
-                    toggleShowFavoritesAndSearch();
-                  }}
+                  onClick={toggleShowFavoritesAndSearch}
                   className="bg-yellow-400 text-black px-4 py-2 rounded-lg hover:bg-yellow-500 transition-colors"
                 >
                   {showFavorites ? 'Show All Exercises' : `Show My Favorite Exercises (${favorites.length})`}
@@ -270,17 +290,26 @@ export default function ExercisesPage() {
               </div>
             </div>
             {/* Exercise Grid */}
-            {!loading && !error && exercises.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {exercises.map((exercise) => (
-                  <ExerciseCard
-                    key={exercise.id}
-                    exercise={exercise}
-                    isFavorite={favorites.includes(exercise.id)}
-                    onToggleFavorite={() => toggleFavorite(exercise.id)}
-                  />
-                ))}
-              </div>
+            {!loading && !error && displayedExercises.length > 0 && (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {paginatedExercises.map((exercise) => (
+                    <ExerciseCard
+                      key={exercise.id}
+                      exercise={exercise}
+                      isFavorite={favorites.includes(exercise.id)}
+                      onToggleFavorite={() => toggleFavorite(exercise.id)}
+                    />
+                  ))}
+                </div>
+                
+                {/* Pagination */}
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                />
+              </>
             )}
 
             {/* Empty State */}
