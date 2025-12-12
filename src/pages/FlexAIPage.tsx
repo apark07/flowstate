@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import NavBar from "../components/NavBar.tsx";
 import { startNewChat } from "../services/geminiService.ts";
 import { type Chat } from "@google/genai"; // Import Chat type

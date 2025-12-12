@@ -49,10 +49,58 @@ export default function ExercisesPage() {
     }
   }, []);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    setCurrentPage(1); // Reset to first page when body part changes
-    loadExercises();
+    const loadExercisesOnMount = async () => {
+      setCurrentPage(1); // Reset to first page when body part changes
+      // Determine the cache key based on the active filter
+      const currentFilter = selectedBodyPart || 'all';
+      const cacheKey = CACHE_KEY_PREFIX + currentFilter;
+
+      // 1. Check Cache First
+      const cachedItem = localStorage.getItem(cacheKey);
+      if (cachedItem) {
+          try {
+              const cache: CachedExercises = JSON.parse(cachedItem);
+              const isStale = Date.now() - cache.timestamp > CACHE_EXPIRATION;
+
+              if (!isStale) {
+                  console.log('Loading exercises from cache.');
+                  setExercises(cache.data);
+                  setError(null);
+                  return; // Stop loading immediately
+              }
+          } catch (e) {
+              console.error('Error parsing cache, fetching fresh data:', e);
+              localStorage.removeItem(cacheKey);
+          }
+      }
+
+      // 2. If no valid cache, load from API
+      setLoading(true);
+      setError(null);
+
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const filters: any = {};
+        if (selectedBodyPart) filters.bodyPart = selectedBodyPart;
+
+        const data = await fetchExercises(filters);
+        setExercises(data);
+
+        // 3. Save new data to cache
+        const cache: CachedExercises = { timestamp: Date.now(), data };
+        localStorage.setItem(cacheKey, JSON.stringify(cache));
+
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred while fetching exercises.';
+        setError(`Failed to load exercises: ${errorMessage}. Check your console for full error details.`);
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadExercisesOnMount();
   }, [selectedBodyPart]);
 
   const toggleShowFavoritesAndSearch = () => {
@@ -138,8 +186,28 @@ export default function ExercisesPage() {
   };
 
   const handleMuscleClick = (muscleName: string) => {
-    // TODO: When ready to implement, map muscle names to body parts and trigger search
-    console.log('Muscle clicked:', muscleName);
+    // Set search term to the clicked muscle name to filter exercises
+    setSearchTerm(muscleName);
+    setCurrentPage(1); // Reset to first page
+    
+    // Fetch exercises with the muscle name as filter
+    const fetchMuscleExercises = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await fetchExercises({ name: muscleName });
+        setExercises(data);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+        setError(`Failed to load exercises for ${muscleName}: ${errorMessage}`);
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchMuscleExercises();
+    console.log('Filtering exercises for muscle:', muscleName);
   };
 
   const toggleFavorite = (exerciseId: string) => {
@@ -356,6 +424,7 @@ function ExerciseCard({ exercise, isFavorite, onToggleFavorite }: ExerciseCardPr
         <div className="relative h-48 bg-gray-100">
           <ExerciseImage
             exerciseId={exercise.id}
+            gifUrl={exercise.gifUrl}
             alt={exercise.name}
             className="w-full h-full object-contain"
           />
@@ -432,6 +501,7 @@ function ExerciseCard({ exercise, isFavorite, onToggleFavorite }: ExerciseCardPr
                   <div className="bg-gray-100 rounded-lg overflow-hidden sticky top-0">
                     <ExerciseImage
                       exerciseId={exercise.id}
+                      gifUrl={exercise.gifUrl}
                       alt={exercise.name}
                       className="w-full h-auto object-contain"
                     />

@@ -2,29 +2,72 @@ import { useState } from "react";
 import Model, { type IExerciseData, type IMuscleStats } from "react-body-highlighter";
 
 interface BodyDiagramProps {
-  onMuscleClick: (muscleName: string) => void;
+  onMuscleClick: (targetMuscle: string) => void;
 }
+
+// Map react-body-highlighter muscle names to exercise target names from exercises.json
+// Only use valid muscle types from the library
+const muscleToTargetMap: Record<string, string> = {
+  // Chest
+  'chest': 'chest',
+  
+  // Back
+  'upper-back': 'upper back',
+  'lower-back': 'lower back',
+  'trapezius': 'traps',
+  
+  // Shoulders
+  'front-deltoids': 'delts',
+  'back-deltoids': 'delts',
+  
+  // Arms
+  'biceps': 'biceps',
+  'triceps': 'triceps',
+  'forearm': 'forearm',
+  
+  // Legs
+  'quadriceps': 'quads',
+  'hamstring': 'hamstrings',
+  'calves': 'calves',
+  'left-soleus': 'calves',
+  'right-soleus': 'calves',
+  'abductors': 'abductors',
+  'adductor': 'adductors',
+  'obliques': 'abdominals',
+  
+  // Core
+  'abs': 'abdominals',
+  
+  // Other
+  'neck': 'neck',
+  'knees': 'knees',
+  'head': 'head',
+};
 
 export default function BodyDiagram({ onMuscleClick }: BodyDiagramProps) {
   const [view, setView] = useState<"anterior" | "posterior">("anterior");
 
-  // Sample exercise data mapped to muscles
+  // Sample exercise data for highlighting - MUST use only valid muscle types from library
   const data: IExerciseData[] = [
     { name: "Bench Press", muscles: ["chest", "triceps", "front-deltoids"] },
     { name: "Push Ups", muscles: ["chest", "triceps", "front-deltoids"] },
-    { name: "Squats", muscles: ["quadriceps", "right-soleus", "left-soleus"] },
-    { name: "Deadlifts", muscles: ["lower-back"] },
-    { name: "Pull Ups", muscles: ["biceps"] },
-    { name: "Shoulder Press", muscles: ["front-deltoids", "triceps", "chest"] },
-    { name: "Barbell Rows", muscles: ["biceps"] },
-    { name: "Leg Press", muscles: ["quadriceps"] },
+    { name: "Squats", muscles: ["quadriceps", "gluteal"] },
+    { name: "Deadlifts", muscles: ["lower-back", "hamstring", "gluteal"] },
+    { name: "Pull Ups", muscles: ["biceps", "back-deltoids"] },
+    { name: "Shoulder Press", muscles: ["front-deltoids", "triceps"] },
+    { name: "Barbell Rows", muscles: ["back-deltoids", "biceps"] },
+    { name: "Leg Press", muscles: ["quadriceps", "gluteal", "hamstring"] },
     { name: "Hamstring Curls", muscles: ["hamstring"] },
     { name: "Dumbbell Curls", muscles: ["biceps"] },
+    { name: "Tricep Dips", muscles: ["triceps", "chest"] },
+    { name: "Lateral Raise", muscles: ["back-deltoids"] },
   ];
 
   const handleMuscleClick = (exercise: IMuscleStats) => {
-    console.log(`Clicked on muscle: ${exercise.muscle}`);
-    onMuscleClick(exercise.muscle);
+    const muscleName = exercise.muscle;
+    const targetMuscle = muscleToTargetMap[muscleName] || muscleName;
+    console.log(`Clicked on muscle: ${muscleName} -> searching for: ${targetMuscle}`);
+    onMuscleClick(targetMuscle);
   };
 
   return (

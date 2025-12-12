@@ -2,58 +2,27 @@ import { useState, useEffect } from 'react';
 
 interface ExerciseImageProps {
   exerciseId: string;
+  gifUrl: string; // Now directly passed from exercise data
   alt: string;
   className?: string;
 }
 
-const RAPIDAPI_KEY = import.meta.env.VITE_RAPIDAPI_KEY;
-
-export default function ExerciseImage({ exerciseId, alt, className }: ExerciseImageProps) {
-  const [imageSrc, setImageSrc] = useState<string>('');
-  const [loading, setLoading] = useState(true);
+export default function ExerciseImage({ exerciseId, gifUrl, alt, className }: ExerciseImageProps) {
+  const [imageSrc, setImageSrc] = useState<string>(gifUrl);
+  const [loading, setLoading] = useState(!gifUrl);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    const fetchImage = async () => {
-      try {
-        setLoading(true);
-        setError(false);
-        const resolution = 720; // resolution can be: 180, 360, 720, 1080
-        const url = `https://exercisedb.p.rapidapi.com/image?resolution=${resolution}&exerciseId=${exerciseId}`;
-
-        const response = await fetch(url, {
-          headers: {
-            'X-RapidAPI-Key': RAPIDAPI_KEY,
-            'X-RapidAPI-Host': 'exercisedb.p.rapidapi.com'
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch image');
-        }
-
-        const blob = await response.blob();
-        const objectUrl = URL.createObjectURL(blob);
-        setImageSrc(objectUrl);
-        setLoading(false);
-      } catch (err) {
-        console.error('Error loading image:', err);
-        setError(true);
-        setLoading(false);
-      }
-    };
-
-    if (exerciseId) {
-      fetchImage();
+    if (!gifUrl) {
+      setError(true);
+      setLoading(false);
+      return;
     }
 
-    // Cleanup: revoke object URL when component unmounts
-    return () => {
-      if (imageSrc) {
-        URL.revokeObjectURL(imageSrc);
-      }
-    };
-  }, [exerciseId]);
+    setImageSrc(gifUrl);
+    setLoading(false);
+    setError(false);
+  }, [gifUrl, exerciseId]);
 
   if (loading) {
     return (
@@ -79,6 +48,9 @@ export default function ExerciseImage({ exerciseId, alt, className }: ExerciseIm
       src={imageSrc}
       alt={alt}
       className={className}
+      onError={() => {
+        setError(true);
+      }}
     />
   );
 }
