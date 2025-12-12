@@ -470,6 +470,7 @@ interface ExerciseCardProps {
 
 function ExerciseCard({ exercise, isFavorite, onToggleFavorite }: ExerciseCardProps) {
   const [showModal, setShowModal] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const formatLabel = (str: string) => {
     return str
@@ -477,6 +478,22 @@ function ExerciseCard({ exercise, isFavorite, onToggleFavorite }: ExerciseCardPr
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
   };
+
+  const handleNextImage = () => {
+    if (exercise.images && exercise.images.length > 0) {
+      setCurrentImageIndex((prev) => (prev + 1) % exercise.images.length);
+    }
+  };
+
+  const handlePreviousImage = () => {
+    if (exercise.images && exercise.images.length > 0) {
+      setCurrentImageIndex((prev) => (prev - 1 + exercise.images.length) % exercise.images.length);
+    }
+  };
+
+  const currentImage = exercise.images && exercise.images.length > 0 
+    ? exercise.images[currentImageIndex] 
+    : exercise.gifUrl;
 
   return (
     <>
@@ -516,7 +533,10 @@ function ExerciseCard({ exercise, isFavorite, onToggleFavorite }: ExerciseCardPr
           </div>
 
           <button
-            onClick={() => setShowModal(true)}
+            onClick={() => {
+              setShowModal(true);
+              setCurrentImageIndex(0);
+            }}
             className="text-indigo-600 hover:text-indigo-700 font-medium text-sm flex items-center gap-1 bg-blue-50 rounded-lg px-3 py-1 hover:bg-blue-100 transition-colors"
           >
             📖 Show Instructions
@@ -562,11 +582,34 @@ function ExerciseCard({ exercise, isFavorite, onToggleFavorite }: ExerciseCardPr
                   <div className="bg-gray-100 rounded-lg overflow-hidden sticky top-0">
                     <ExerciseImage
                       exerciseId={exercise.id}
-                      gifUrl={exercise.gifUrl}
+                      gifUrl={currentImage}
                       alt={exercise.name}
                       className="w-full h-auto object-contain"
                     />
                   </div>
+
+                  {/* Image Navigation Controls */}
+                  {exercise.images && exercise.images.length > 1 && (
+                    <div className="space-y-3">
+                      <div className="flex gap-3 justify-center">
+                        <button
+                          onClick={handlePreviousImage}
+                          className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors font-medium flex items-center gap-2"
+                        >
+                          ← Previous
+                        </button>
+                        <button
+                          onClick={handleNextImage}
+                          className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors font-medium flex items-center gap-2"
+                        >
+                          Next →
+                        </button>
+                      </div>
+                      <div className="text-center text-sm text-gray-600">
+                        Image {currentImageIndex + 1} of {exercise.images.length}
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Secondary Muscles */}
                   {exercise.secondaryMuscles && exercise.secondaryMuscles.length > 0 && (

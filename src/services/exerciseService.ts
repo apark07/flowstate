@@ -23,6 +23,7 @@ export interface Exercise {
   target: string;
   equipment: string;
   gifUrl: string;
+  images: string[];
   instructions: string[];
   secondaryMuscles: string[];
   difficulty?: string;
@@ -179,6 +180,9 @@ const transformExercise = (raw: RawExercise): Exercise => {
   const imagePath = raw.images[0] || '';
   const gifUrl = imagePath ? `${GITHUB_IMAGE_BASE}/${imagePath}` : '';
 
+  // Convert all images to GitHub URLs
+  const allImages = raw.images.map(img => `${GITHUB_IMAGE_BASE}/${img}`);
+
   return {
     id: raw.id,
     name: raw.name,
@@ -186,6 +190,7 @@ const transformExercise = (raw: RawExercise): Exercise => {
     target: primaryMuscle,
     equipment: raw.equipment || 'body weight',
     gifUrl,
+    images: allImages,
     instructions: raw.instructions,
     secondaryMuscles: raw.secondaryMuscles,
     difficulty: raw.level || 'intermediate',
