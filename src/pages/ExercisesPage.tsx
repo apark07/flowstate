@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { 
-  fetchExercises, 
-  fetchBodyParts,
-  type Exercise, 
-  DEFAULT_BODY_PARTS
+  fetchExercises,
+  fetchUniqueMuscles,
+  fetchUniqueDifficulties,
+  fetchUniqueCategories,
+  type Exercise
 } from '../services/exerciseService';
 import ExerciseImage from '../components/ExerciseImage';
 import NavBar from '../components/NavBar.tsx';
@@ -29,19 +30,28 @@ export default function ExercisesPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBodyPart, setSelectedBodyPart] = useState('');
-  const [bodyParts, setBodyParts] = useState<string[]>(DEFAULT_BODY_PARTS);
+  const [selectedMuscle, setSelectedMuscle] = useState('');
+  const [selectedDifficulty, setSelectedDifficulty] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [muscles, setMuscles] = useState<string[]>([]);
+  const [difficulties, setDifficulties] = useState<string[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [showFavorites, setShowFavorites] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    const loadBodyParts = async () => {
-      const parts = await fetchBodyParts();
-      if (parts.length > 0) {
-        setBodyParts(parts);
-      }
+    const loadFilterOptions = async () => {
+      const [uniqueMuscles, uniqueDifficulties, uniqueCategories] = await Promise.all([
+        fetchUniqueMuscles(),
+        fetchUniqueDifficulties(),
+        fetchUniqueCategories()
+      ]);
+      setMuscles(uniqueMuscles);
+      setDifficulties(uniqueDifficulties);
+      setCategories(uniqueCategories);
     };
-    loadBodyParts();
+    loadFilterOptions();
 
     const savedFavorites = localStorage.getItem('favoriteExercises');
     if (savedFavorites) {
@@ -164,17 +174,19 @@ export default function ExercisesPage() {
   };
 
   const handleSearch = async () => {
-    if (!searchTerm.trim()) {
-      loadExercises();
-      return;
-    }
-
+    setCurrentPage(1);
     setLoading(true);
     setError(null);
 
     try {
-      // NOTE: Search results should NOT be cached, as they are dynamic
-      const data = await fetchExercises({ name: searchTerm });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const filters: any = {};
+      if (searchTerm.trim()) filters.name = searchTerm;
+      if (selectedMuscle) filters.muscle = selectedMuscle;
+      if (selectedDifficulty) filters.difficulty = selectedDifficulty;
+      if (selectedCategory) filters.category = selectedCategory;
+
+      const data = await fetchExercises(filters);
       setExercises(data);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred while searching exercises.';
@@ -186,16 +198,16 @@ export default function ExercisesPage() {
   };
 
   const handleMuscleClick = (muscleName: string) => {
-    // Set search term to the clicked muscle name to filter exercises
-    setSearchTerm(muscleName);
+    // Set the selected muscle filter to the clicked muscle
+    setSelectedMuscle(muscleName);
     setCurrentPage(1); // Reset to first page
     
-    // Fetch exercises with the muscle name as filter
+    // Fetch exercises with the muscle filter
     const fetchMuscleExercises = async () => {
       setLoading(true);
       setError(null);
       try {
-        const data = await fetchExercises({ name: muscleName });
+        const data = await fetchExercises({ muscle: muscleName });
         setExercises(data);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
@@ -230,8 +242,13 @@ export default function ExercisesPage() {
 
   const clearFilters = () => {
     setCurrentPage(1); // Reset to first page when clearing filters
-    setSelectedBodyPart('');
     setSearchTerm('');
+    setSelectedBodyPart('');
+    setSelectedMuscle('');
+    setSelectedDifficulty('');
+    setSelectedCategory('');
+    // Reload all exercises
+    loadExercises();
   };
 
   // Calculate pagination
@@ -292,28 +309,72 @@ export default function ExercisesPage() {
               </div>
 
               {/* Filters */}
-              <div className="grid grid-cols-1 gap-4 mb-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Body Part
+                    Muscle Group
                   </label>
                   <select
-                    value={selectedBodyPart}
-                    onChange={(e) => setSelectedBodyPart(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                    value={selectedMuscle}
+                    onChange={(e) => setSelectedMuscle(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm"
                   >
-                    <option value="">All Body Parts</option>
-                    {bodyParts.map((part) => (
-                      <option key={part} value={part}>
-                        {formatLabel(part)}
+                    <option value="">All Muscles</option>
+                    {muscles.map((muscle) => (
+                      <option key={muscle} value={muscle}>
+                        {formatLabel(muscle)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Difficulty
+                  </label>
+                  <select
+                    value={selectedDifficulty}
+                    onChange={(e) => setSelectedDifficulty(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm"
+                  >
+                    <option value="">All Levels</option>
+                    {difficulties.map((difficulty) => (
+                      <option key={difficulty} value={difficulty}>
+                        {formatLabel(difficulty)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Workout Type
+                  </label>
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm"
+                  >
+                    <option value="">All Types</option>
+                    {categories.map((category) => (
+                      <option key={category} value={category}>
+                        {formatLabel(category)}
                       </option>
                     ))}
                   </select>
                 </div>
               </div>
 
+              {/* Apply Filters Button */}
+              <button
+                onClick={handleSearch}
+                className="w-full bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors mb-4 text-sm font-medium"
+              >
+                Apply Filters
+              </button>
+
               {/* Clear Filters Button */}
-              {(selectedBodyPart || searchTerm) && (
+              {(selectedBodyPart || selectedMuscle || selectedDifficulty || selectedCategory || searchTerm) && (
                 <button
                   onClick={clearFilters}
                   className="text-indigo-600 hover:text-indigo-700 text-sm font-medium"

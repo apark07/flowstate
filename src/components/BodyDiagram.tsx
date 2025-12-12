@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Model, { type IExerciseData, type IMuscleStats } from "react-body-highlighter";
+import { normalizeMuscle } from "../services/exerciseService";
 
 interface BodyDiagramProps {
   onMuscleClick: (targetMuscle: string) => void;
@@ -17,16 +18,16 @@ const muscleToTargetMap: Record<string, string> = {
   'trapezius': 'traps',
   
   // Shoulders
-  'front-deltoids': 'delts',
-  'back-deltoids': 'delts',
+  'front-deltoids': 'shoulders',
+  'back-deltoids': 'shoulders',
   
   // Arms
   'biceps': 'biceps',
   'triceps': 'triceps',
-  'forearm': 'forearm',
+  'forearm': 'forearms',
   
   // Legs
-  'quadriceps': 'quads',
+  'quadriceps': 'quadriceps',
   'hamstring': 'hamstrings',
   'calves': 'calves',
   'left-soleus': 'calves',
@@ -66,8 +67,9 @@ export default function BodyDiagram({ onMuscleClick }: BodyDiagramProps) {
   const handleMuscleClick = (exercise: IMuscleStats) => {
     const muscleName = exercise.muscle;
     const targetMuscle = muscleToTargetMap[muscleName] || muscleName;
-    console.log(`Clicked on muscle: ${muscleName} -> searching for: ${targetMuscle}`);
-    onMuscleClick(targetMuscle);
+    const normalizedMuscle = normalizeMuscle(targetMuscle);
+    console.log(`Clicked on muscle: ${muscleName} -> mapped to: ${targetMuscle} -> normalized: ${normalizedMuscle}`);
+    onMuscleClick(normalizedMuscle);
   };
 
   return (
@@ -123,6 +125,11 @@ export default function BodyDiagram({ onMuscleClick }: BodyDiagramProps) {
           <li>✓ Switch between front and back views</li>
           <li>✓ Color intensity shows exercise frequency</li>
         </ul>
+        {/*  new line for spacing */}
+        
+        <br/>
+
+        <small className="text-gray-600 text-xs ">Please note that some muscles may not correlate to any exercises due to how they are categorized.</small>
       </div>
     </div>
   );
