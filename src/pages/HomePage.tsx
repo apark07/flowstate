@@ -24,8 +24,8 @@ export default function HomePage() {
               className="cursor-pointer"
             >
               <FeatureCard
-                title="Exercises & Videos"
-                description="Browse exercises with animated demonstrations and form videos"
+                title="Exercise Library"
+                description="Browse exercises with instructions and form visuals"
                 icon="🏋️"
               />
             </div>

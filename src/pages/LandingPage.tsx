@@ -74,7 +74,7 @@ function LandingPage() {
             <LandingPageCard
               image="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&h=600&fit=crop"
               text="Exercises"
-              subtext="Browse guided exercises with form tips and videos."
+              subtext="Browse guided exercises with form tips and visuals."
             />
             <LandingPageCard
               image={WorkoutLogPicture}
